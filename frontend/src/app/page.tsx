@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell"
 import { HudPlaceholder } from "@/components/layout/HudPlaceholder"
+import { internalOrigin } from "@/lib/internalOrigin"
 
 type SummaryResponse = {
   ok: boolean
@@ -28,7 +29,7 @@ type IngestResponse = {
 }
 
 async function getSummary(): Promise<SummaryResponse> {
-  const res = await fetch("http://localhost:3000/api/services/api-gateway-observability", {
+  const res = await fetch(`${internalOrigin()}/api/services/api-gateway-observability`, {
     cache: "no-store",
   }).catch(() => null)
   if (!res) return { ok: false, error: "Cannot reach frontend API route." }
@@ -36,7 +37,7 @@ async function getSummary(): Promise<SummaryResponse> {
 }
 
 async function getIngestionStatus(): Promise<IngestResponse> {
-  const res = await fetch("http://localhost:3000/api/ingest/latest", {
+  const res = await fetch(`${internalOrigin()}/api/ingest/latest`, {
     cache: "no-store",
   }).catch(() => null)
   if (!res) return { ok: false, error: "Cannot reach ingestion API route." }

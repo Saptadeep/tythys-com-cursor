@@ -21,6 +21,8 @@ class IngestEventsRequest(BaseModel):
 class IngestEventsResponse(BaseModel):
     accepted: bool
     received_count: int
+    inserted_count: int
+    duplicates_skipped: int
     total_stored: int
     last_event_at: datetime | None
 
