@@ -4,13 +4,13 @@ date /t > .\frontend\src\app\version_timestamp
 time /t >> .\frontend\src\app\version_timestamp
 
 IF [%1%] equ [] (
-	set COMMENT="%DATE% %TIME%
+	set COMMENT=%DATE%%TIME%
 ) ELSE (
 	set COMMENT=%1%
 )
 echo.
 echo.
-echo Commit Comment: %COMMENT%
+echo Commit Comment: "%COMMENT%"
 		pause
 echo.
 echo.
@@ -43,7 +43,8 @@ GOTO ALL_OKAY
 	echo.
 	echo.
 	echo.
-	pause
+	@REM This below goto will prevent execution of exit command, which is needed for the user to see the error message before the window closes.
+	goto error_exit	
 exit
 
 :ALL_OKAY
@@ -52,3 +53,5 @@ exit
 	timeout /t 1
 	@rem echo 1 secs to exit.
 	@rem timeout /t 5 >nul
+
+:error_exit
