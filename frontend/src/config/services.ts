@@ -23,7 +23,7 @@ export const SERVICES: Service[] = [
     tagline:     'API Gateway observability for reliable operations',
     description: 'Monitor gateway health, trace request flow, and detect latency or error spikes early so your team can resolve incidents faster.',
     category:    'Vertical SaaS',
-    status:      'beta',
+    status:      'live',
     icon:        '🛰️',
     accentColor: '#00e5b8',
     price:       'Contact for pricing',

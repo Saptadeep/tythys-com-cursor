@@ -40,6 +40,7 @@ export type ServiceCategory =
 
 // ── Math domains — for filtering and labelling ────────────
 export type MathDomain =
+  | 'Compute Metrics'
   | 'Linear Algebra'
   | 'Calculus'
   | 'Physics'
