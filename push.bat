@@ -1,4 +1,54 @@
+@echo off
 cd C:\tythys-com-cursor
-git add .
-git commit -m "quick commit"
-git push
+date /t > .\frontend\src\app\version_timestamp
+time /t >> .\frontend\src\app\version_timestamp
+
+IF [%1%] equ [] (
+	set COMMENT="%DATE% %TIME%
+) ELSE (
+	set COMMENT=%1%
+)
+echo.
+echo.
+echo Commit Comment: %COMMENT%
+		pause
+echo.
+echo.
+@echo T K N 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
+@echo config credential.helper store
+echo.
+
+set err_code=CD_TYTHYS_DOT_COM_DID_NOT_WORK
+    cd C:\tythys-com-cursor				
+	IF %ERRORLEVEL% NEQ 0 GOTO E_R_R_O_R
+
+set err_code=GIT_PUSH_DID_NOT_WORK
+	git add .
+	git commit -m %COMMENT%
+	git push
+	IF %ERRORLEVEL% NEQ 0 GOTO E_R_R_O_R
+	@echo [93m   -----------------------------------------------------------
+GOTO ALL_OKAY
+
+:E_R_R_O_R
+	@pause
+	echo.
+	echo                 GIT PUSH Failed!!!!                      GIT PUSH Failed!!!!
+	echo.
+	echo.
+	echo ............................................................................
+	echo                   BATCH ERROR:       %err_code%
+	echo                   OS ERROR:          %ERRORLEVEL% 
+	echo .............................................................................
+	echo.
+	echo.
+	echo.
+	pause
+exit
+
+:ALL_OKAY
+	echo.
+	echo                      Push worked fine! 
+	timeout /t 1
+	@rem echo 1 secs to exit.
+	@rem timeout /t 5 >nul

@@ -92,7 +92,11 @@ function ProductCard({ service, index }: { service: Service; index: number }) {
           {/* Footer */}
           <div className="mt-auto flex items-center justify-between border-t border-accent-dim pt-3.5">
             <span className="font-mono text-[0.76rem] text-gold">
-              {service.price}
+              {service.price === 'Contact for pricing' || service.price === 'School licensing' ? (
+                <a href="#contact">{service.price}</a>
+              ) : (
+                service.price
+              )}
               {service.apiEndpoint && service.id !== 'beam-calc' && (
                 <span className="ml-2 rounded-full border border-accent/20 bg-accent/8 px-2 py-0.5 text-[0.55rem] text-accent">
                   ⚡ Live
