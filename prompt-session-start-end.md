@@ -17,8 +17,18 @@ I am git-pushing the current bundle with commit remark: XXXXXXXXXXXXXXXXXXXXXX
 # Prompt on end of session:
 Exiting Cursor. Update handoff so that we can resume smoothly. Keep all files maintained.
 
+# Layout design prompt
+Build/update this page to match the existing landing page visual system exactly.
+Requirements:
+- Reuse current app components/tokens/classes and UI language from landing page.
+- Keep same design DNA: glass cards, spacing rhythm, typography hierarchy, color semantics, status pills.
+- Do not introduce a new design style.
+- Any new dialogs/popups/drawers must inherit existing classes and interaction patterns.
+- If a style decision is ambiguous, copy the nearest landing-page pattern.
+- Scope changes only to: <list exact files>.
 
-se this if you want your branch to match the pushed commit with message
+# Git savers:
+use this if you want your branch to match the pushed commit with message
 26-04-2026 8:41:05.04.
 
 # 1) Find the commit hash by exact message
