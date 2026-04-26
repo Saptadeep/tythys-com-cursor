@@ -17,3 +17,22 @@ I am git-pushing the current bundle with commit remark: XXXXXXXXXXXXXXXXXXXXXX
 # Prompt on end of session:
 Exiting Cursor. Update handoff so that we can resume smoothly. Keep all files maintained.
 
+
+se this if you want your branch to match the pushed commit with message
+26-04-2026 8:41:05.04.
+
+# 1) Find the commit hash by exact message
+git log --all --oneline --grep="^26-04-2026 8:41:05.04$"
+
+# 2) Reset your local branch to that commit
+git reset --hard <COMMIT_HASH>
+
+# 3) Push that exact state to remote
+git push --force-with-lease
+Safer alternative (no history rewrite, creates a new commit that undoes later changes):
+
+git revert --no-edit <COMMIT_HASH>..HEAD
+git push
+Use reset --hard + force-with-lease when you want branch history to look exactly like that old pushed point.
+Use revert when others may already be using current history.
+
