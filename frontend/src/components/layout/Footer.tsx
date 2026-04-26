@@ -17,7 +17,7 @@ export function Footer() {
           <div className="flex items-center gap-3">
             <a href="#" className="flex items-center gap-2">
               <span className="flex flex-col leading-tight">
-                <span className="font-body text-[1rem] font-semibold tracking-[-0.03em] text-[#dde4f0]">
+                <span className="font-display text-[1.05rem] font-bold tracking-[-0.025em] text-[#dde4f0]">
                   Tythys<span className="text-accent">One</span>
                 </span>
                 <span className="font-mono text-[0.58rem] uppercase tracking-[0.22em] text-dim/70">

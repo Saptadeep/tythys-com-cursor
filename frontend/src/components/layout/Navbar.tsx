@@ -2,10 +2,18 @@
 // src/components/layout/Navbar.tsx
 import { useState, useEffect }  from 'react'
 import Link                     from 'next/link'
+import { usePathname }          from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
 import { Menu, X, Zap }         from 'lucide-react'
 import { cn }                   from '@/lib/cn'
 import { SERVICES }             from '@/config/services'
+import { BrandGlyph }           from './BrandGlyph'
+
+/* Map known sub-pages → contextual subline shown under the wordmark.
+   Falls back to "Control Plane" on the marketing/landing route. */
+const SUBLINE_BY_PATH: Array<{ test: (p: string) => boolean; label: string }> = [
+  { test: (p) => p.startsWith('/gateway-observability'), label: 'GatewaySight · Control Plane' },
+]
 
 const NAV_LINKS = [
   { label: 'Products', href: '#products' },
@@ -18,6 +26,8 @@ const LIVE_COUNT = SERVICES.filter(s => s.status === 'live').length
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const pathname = usePathname() ?? '/'
+  const subline = SUBLINE_BY_PATH.find(({ test }) => test(pathname))?.label ?? 'Control Plane'
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 50)
@@ -49,14 +59,18 @@ export function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 text-[#dde4f0]"
+            aria-label="TythysOne — back to overview"
+            className="group flex items-center gap-2.5 text-[#dde4f0]"
           >
+            <span className="inline-flex rounded-[7px] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-glow">
+              <BrandGlyph size={28} />
+            </span>
             <span className="flex flex-col leading-tight">
-              <span className="font-body text-[1.15rem] font-semibold tracking-[-0.03em]">
-                Tythys<span className="text-accent">One</span>
+              <span className="font-display text-[1.2rem] font-bold tracking-[-0.025em] transition-colors duration-200 group-hover:text-accent">
+                Tythys<span className="text-accent transition-colors duration-200 group-hover:text-gold">One</span>
               </span>
-              <span className="font-mono text-[0.58rem] uppercase tracking-[0.22em] text-dim/70">
-                Control Plane
+              <span className="font-mono text-[0.58rem] uppercase tracking-[0.22em] text-dim/70 transition-colors duration-200 group-hover:text-dim">
+                {subline}
               </span>
             </span>
           </Link>
