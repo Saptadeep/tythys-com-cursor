@@ -1,0 +1,113 @@
+Create an industry grade frontend keeping documented provisions for later extension and enhancements and customization for addition of modules and services for example adding a contact form (mock the route for now), user creation (mock the route for now) and user authentication addition (mock the route for now) of more api services based on the following specs. Use place holders for branding, and hud and footer elements and components and document for future customisation and enhancements. Create all files and folders with full documentation and instruction based on the following specs. PS: This specs are not comprehensive they are more indicative. Please think thoroughly the ultimate goal and the decide the theme of the app as you think is appropriate and best:
+
+🧱 COMPLETE SPEC:
+🔷 API ENDPOINT
+GET /metrics
+🔷 RESPONSE
+interface MetricsResponse {
+  summary: {
+    rps: number;
+    total_requests: number;
+    error_rate: number;
+    avg_latency: number;
+    p95_latency: number;
+  };
+
+  routes: {
+    path: string;
+    hits: number;
+    error_rate: number;
+    avg_latency: number;
+  }[];
+
+  clients: {
+    ip: string;
+    requests: number;
+  }[];
+
+  timeseries: {
+    rps: number[];
+    latency: number[];
+    errors: number[];
+  };
+}
+🧱 COMPONENT TREE
+1. DashboardPage
+Layout:
+Sidebar | MainContent | (Optional Panel)
+2. TopMetricsBar
+Props:
+- summary
+
+Displays:
+- RPS
+- Error Rate
+- P95 Latency
+- Total Requests
+
+Rules:
+- error_rate > 5% → red
+- latency > 300ms → amber
+3. ThroughputChart
+Props:
+- timeseries.rps
+
+Type:
+- line chart
+
+Behavior:
+- updates every 3s
+- keeps last 60 points
+4. LatencyChart
+Props:
+- timeseries.latency
+5. RouteTable
+Props:
+- routes[]
+
+Columns:
+- path
+- hits
+- error_rate
+- latency
+
+Behavior:
+- sortable
+- highlight error_rate > 5%
+6. LiveStreamPanel
+Props:
+- derived from routes
+
+Displays:
+- last N requests
+
+Format:
+[time] METHOD route → status (latency)
+🧱 STATE MANAGEMENT
+Global State
+type AppState = {
+  metrics: MetricsResponse | null;
+  loading: boolean;
+  error: string | null;
+};
+Fetch cycle
+onMount → fetch → success → refresh every 3s
+🧱 RESPONSIVENESS RULES
+Desktop (≥1280px)
+Sidebar | Main | Right Panel
+Tablet
+Sidebar (collapsed) | Main
+Mobile
+Main only
+Sidebar → drawer
+🧱 UI RULES
+Truncation
+<span className="truncate" title={fullText}>
+Animation
+hover → slight lift
+no continuous motion except charts
+Colors
+State	Color
+normal	cyan
+warning	amber
+critical	red

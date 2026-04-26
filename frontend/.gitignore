@@ -1,0 +1,10 @@
+.next/
+node_modules/
+.env
+.env.local
+.env.production
+.env.bat
+out/
+dist/
+*.log
+.DS_Store
