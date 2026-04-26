@@ -120,8 +120,9 @@ export default function GatewayObservabilityPage() {
   const totalIncidents = incidents.length
   const degradedEndpoints = endpoints.filter((e) => e.health !== 'healthy').length
   const topActions = actions.slice(0, 3)
-  const topTimeline = timeline.slice(0, 5)
-  const topEndpoints = endpoints.slice(0, 6)
+  const topTimeline = timeline.slice(0, 4)
+  const topEndpoints = endpoints.slice(0, 4)
+  const topIncidents = incidents.slice(0, 3)
 
   return (
     <>
@@ -149,8 +150,7 @@ export default function GatewayObservabilityPage() {
               <span className="eyebrow">GatewaySight</span>
               <h1 className="h2" style={{ marginTop: 6 }}>API Gateway observability</h1>
               <p className="note" style={{ marginTop: 8, maxWidth: 760 }}>
-                {headline}. Monitor reliability, prioritize incidents, and keep route-level performance stable with one
-                operational view.
+                {headline}. A focused operations view for reliability posture, incident pressure, and fix-first actions.
               </p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 14, position: 'relative' }}>
@@ -220,7 +220,7 @@ export default function GatewayObservabilityPage() {
             <div className="grid-2" style={{ marginTop: 14 }}>
               <section className="card" style={{ padding: 16 }}>
                 <h2 className="section-title">Service Risk Snapshot</h2>
-                <p className="h2">Core service health</p>
+                <p className="h2">Core reliability posture</p>
                 {!summary ? (
                   <p className="note">Summary is not available yet.</p>
                 ) : (
@@ -235,7 +235,7 @@ export default function GatewayObservabilityPage() {
 
               <section className="card" style={{ padding: 16 }}>
                 <h2 className="section-title">Ingestion Status</h2>
-                <p className="h2">Event pipeline health</p>
+                <p className="h2">Telemetry intake health</p>
                 {!ingest ? (
                   <p className="note">Ingestion metrics unavailable.</p>
                 ) : (
@@ -256,12 +256,12 @@ export default function GatewayObservabilityPage() {
             <div className="grid-2" style={{ marginTop: 14 }}>
               <section className="card" style={{ padding: 16 }}>
                 <h2 className="section-title">Current Incidents</h2>
-                <p className="h2">Severity and business-facing impact</p>
-                {incidents.length === 0 ? (
+                <p className="h2">Severity and impact overview</p>
+                {topIncidents.length === 0 ? (
                   <p className="note">No active incidents detected.</p>
                 ) : (
                   <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                    {incidents.slice(0, 3).map((incident) => (
+                    {topIncidents.map((incident) => (
                       <article key={incident.id} className="metric">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                           <div style={{ fontWeight: 700 }}>{incident.title}</div>
@@ -340,6 +340,7 @@ export default function GatewayObservabilityPage() {
 
             <section className="card" style={{ padding: 16, marginTop: 14 }}>
               <h2 className="section-title">Operational Readiness</h2>
+              <p className="h2">Decision signals at a glance</p>
               <div className="grid-3" style={{ marginTop: 12 }}>
                 <ReadinessItem icon={<ShieldCheck size={14} />} title="Service Health" value={summary?.health ?? 'healthy'} />
                 <ReadinessItem
