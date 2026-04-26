@@ -193,75 +193,68 @@ export default function GatewayObservabilityPage() {
               {error ? <p className="note" style={{ marginTop: 10 }}>{error}</p> : null}
             </section>
 
-            <div className="grid-3" style={{ marginTop: 14 }}>
-              <section className="card" style={{ padding: 16 }}>
-                <div className="section-title">P95 Latency</div>
-                <div className="h2">{summary ? `${summary.latencyMs} ms` : 'n/a'}</div>
-                <p className="note" style={{ marginTop: 6, marginBottom: 0 }}>
-                  Route response performance under current traffic.
-                </p>
-              </section>
-              <section className="card" style={{ padding: 16 }}>
-                <div className="section-title">Error Rate</div>
-                <div className="h2">{summary ? `${summary.errorRatePct.toFixed(2)}%` : 'n/a'}</div>
-                <p className="note" style={{ marginTop: 6, marginBottom: 0 }}>
-                  Current gateway error pressure in active window.
-                </p>
-              </section>
-              <section className="card" style={{ padding: 16 }}>
-                <div className="section-title">Traffic / min</div>
-                <div className="h2">{summary ? summary.requestsPerMin.toString() : 'n/a'}</div>
-                <p className="note" style={{ marginTop: 6, marginBottom: 0 }}>
-                  Throughput observed across incoming gateway requests.
-                </p>
-              </section>
-            </div>
-
             <div className="grid-2" style={{ marginTop: 14 }}>
+              <section className="card" style={{ padding: 16 }}>
+                <h2 className="section-title">Performance Signals</h2>
+                <p className="h2">Live gateway indicators</p>
+                <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+                  <MetricSignalCard
+                    title="P95 Latency"
+                    value={summary ? `${summary.latencyMs} ms` : 'n/a'}
+                    subtitle="Route response performance under current traffic."
+                    trend={summary ? Math.max(0, Math.min(100, 100 - summary.latencyMs)) : 0}
+                  />
+                  <MetricSignalCard
+                    title="Error Rate"
+                    value={summary ? `${summary.errorRatePct.toFixed(2)}%` : 'n/a'}
+                    subtitle="Current gateway error pressure in active window."
+                    trend={summary ? Math.max(0, Math.min(100, 100 - summary.errorRatePct * 10)) : 0}
+                  />
+                  <MetricSignalCard
+                    title="Traffic / min"
+                    value={summary ? summary.requestsPerMin.toString() : 'n/a'}
+                    subtitle="Throughput observed across incoming gateway requests."
+                    trend={summary ? Math.max(0, Math.min(100, summary.requestsPerMin / 20)) : 0}
+                  />
+                </div>
+              </section>
+
               <section className="card" style={{ padding: 16 }}>
                 <h2 className="section-title">Service Risk Snapshot</h2>
-                <p className="h2">Core reliability posture</p>
-                {!summary ? (
-                  <p className="note">Summary is not available yet.</p>
-                ) : (
-                  <div className="grid-3" style={{ marginTop: 14 }}>
-                    <Metric label="Health" value={summary.health.toUpperCase()} />
-                    <Metric label="Uptime" value={`${summary.uptimePct.toFixed(2)}%`} />
-                    <Metric label="Service Id" value={summary.serviceId} />
+                <p className="h2">Reliability at a glance</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                  <span className={statusClass(summary?.health ?? 'healthy')}>{summary?.health ?? 'healthy'}</span>
+                  <span className="status ok">{summary ? `${summary.uptimePct.toFixed(2)}% uptime` : 'uptime n/a'}</span>
+                  <span className="status warn">{totalIncidents} incident signals</span>
+                  <span className="status err">{degradedEndpoints} degraded routes</span>
+                </div>
+                <div className="metric" style={{ marginTop: 12 }}>
+                  <div className="metric-k">Service ID</div>
+                  <div style={{ marginTop: 6, fontWeight: 600 }}>{summary?.serviceId ?? 'api-gateway-observability'}</div>
+                </div>
+                <div className="metric" style={{ marginTop: 10 }}>
+                  <div className="metric-k">Telemetry Intake</div>
+                  <div style={{ marginTop: 6, display: 'grid', gap: 6 }}>
+                    <ListRow label="Total events" value={ingest ? ingest.total_events.toString() : 'n/a'} />
+                    <ListRow label="Recent window" value={ingest ? ingest.recent_event_count.toString() : 'n/a'} />
+                    <ListRow label="Errors in window" value={ingest ? ingest.error_events_last_window.toString() : 'n/a'} />
                   </div>
-                )}
+                </div>
                 {summary?.notes ? <p className="note" style={{ marginTop: 12 }}>{summary.notes}</p> : null}
-              </section>
-
-              <section className="card" style={{ padding: 16 }}>
-                <h2 className="section-title">Ingestion Status</h2>
-                <p className="h2">Telemetry intake health</p>
-                {!ingest ? (
-                  <p className="note">Ingestion metrics unavailable.</p>
-                ) : (
-                  <div className="grid-3" style={{ marginTop: 14 }}>
-                    <Metric label="Service Id" value={ingest.service_id ?? 'n/a'} />
-                    <Metric label="Total Events" value={ingest.total_events.toString()} />
-                    <Metric label="Recent Window" value={ingest.recent_event_count.toString()} />
-                    <Metric label="Errors In Window" value={ingest.error_events_last_window.toString()} />
-                    <Metric
-                      label="Last Event At"
-                      value={ingest.last_event_at ? new Date(ingest.last_event_at).toLocaleTimeString() : 'n/a'}
-                    />
-                  </div>
-                )}
               </section>
             </div>
 
             <div className="grid-2" style={{ marginTop: 14 }}>
               <section className="card" style={{ padding: 16 }}>
-                <h2 className="section-title">Current Incidents</h2>
-                <p className="h2">Severity and impact overview</p>
-                {topIncidents.length === 0 ? (
-                  <p className="note">No active incidents detected.</p>
-                ) : (
-                  <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                    {topIncidents.map((incident) => (
+                <h2 className="section-title">Incident Intelligence</h2>
+                <p className="h2">Active issues and fix queue</p>
+                <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+                  {topIncidents.length === 0 ? (
+                    <div className="metric">
+                      <div className="note">No active incidents detected.</div>
+                    </div>
+                  ) : (
+                    topIncidents.map((incident) => (
                       <article key={incident.id} className="metric">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                           <div style={{ fontWeight: 700 }}>{incident.title}</div>
@@ -270,71 +263,63 @@ export default function GatewayObservabilityPage() {
                         <div className="note" style={{ marginTop: 8 }}>
                           {incident.route ?? 'route n/a'} · Loss/hr ${incident.estimated_loss_per_hour_usd.toFixed(2)}
                         </div>
-                        <div className="note">Affected traffic {incident.affected_traffic_pct.toFixed(2)}%</div>
                       </article>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  )}
+                </div>
+                <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+                  {topActions.length === 0 ? (
+                    <div className="metric"><div className="note">No prioritized actions yet.</div></div>
+                  ) : (
+                    topActions.map((action) => (
+                      <div key={`${action.rank}-${action.title}`} className="metric">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+                          <div style={{ fontWeight: 700 }}>#{action.rank} {action.title}</div>
+                          <span className="status ok">Queued</span>
+                        </div>
+                        <div className="note" style={{ marginTop: 6 }}>{action.rationale}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </section>
 
               <section className="card" style={{ padding: 16 }}>
-                <h2 className="section-title">Fix First Queue</h2>
-                <p className="h2">Priority mitigation actions</p>
-                {topActions.length === 0 ? (
-                  <p className="note">No actions queued yet.</p>
-                ) : (
-                  <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                    {topActions.map((action) => (
-                      <article key={`${action.rank}-${action.title}`} className="metric">
-                        <div style={{ fontWeight: 700 }}>#{action.rank} {action.title}</div>
-                        <div className="note" style={{ marginTop: 8 }}>{action.rationale}</div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </section>
-            </div>
-
-            <div className="grid-2" style={{ marginTop: 14 }}>
-              <section className="card" style={{ padding: 16 }}>
-                <h2 className="section-title">Endpoint Reliability</h2>
-                <p className="h2">Route health and pressure</p>
-                {topEndpoints.length === 0 ? (
-                  <p className="note">No endpoint rollups available yet.</p>
-                ) : (
-                  <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                    {topEndpoints.map((endpoint, idx) => (
-                      <article key={`${endpoint.route}-${idx}`} className="metric">
+                <h2 className="section-title">Route & Event Feed</h2>
+                <p className="h2">Endpoint health and timeline</p>
+                <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+                  {topEndpoints.length === 0 ? (
+                    <div className="metric"><div className="note">No endpoint rollups available yet.</div></div>
+                  ) : (
+                    topEndpoints.map((endpoint, idx) => (
+                      <div key={`${endpoint.route}-${idx}`} className="metric">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                           <div style={{ fontWeight: 700 }}>{endpoint.route}</div>
                           <span className={statusClass(endpoint.health)}>{endpoint.health}</span>
                         </div>
-                        <div className="note" style={{ marginTop: 8 }}>
+                        <div className="note" style={{ marginTop: 6 }}>
                           req={endpoint.request_count} err={endpoint.error_count} p95~{endpoint.p95_latency_ms.toFixed(1)}ms
                         </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className="card" style={{ padding: 16 }}>
-                <h2 className="section-title">Ops Timeline</h2>
-                <p className="h2">Latest operational events</p>
-                {topTimeline.length === 0 ? (
-                  <p className="note">No timeline events yet.</p>
-                ) : (
-                  <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
-                    {topTimeline.map((event, idx) => (
-                      <div key={`${event.ts}-${idx}`} className="metric">
-                        <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
-                          {new Date(event.ts).toLocaleString()} · {event.kind}
-                        </div>
-                        <div style={{ marginTop: 6 }}>{event.message}</div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  )}
+                </div>
+                <div className="metric" style={{ marginTop: 12, maxHeight: 210, overflowY: 'auto' }}>
+                  {topTimeline.length === 0 ? (
+                    <div className="note">No timeline events yet.</div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      {topTimeline.map((event, idx) => (
+                        <div key={`${event.ts}-${idx}`} style={{ borderBottom: idx < topTimeline.length - 1 ? '1px solid var(--line-soft)' : 'none', paddingBottom: 8 }}>
+                          <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
+                            {new Date(event.ts).toLocaleTimeString()} · {event.kind}
+                          </div>
+                          <div style={{ marginTop: 4, fontSize: 13 }}>{event.message}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </section>
             </div>
 
@@ -374,6 +359,48 @@ function Metric({ label, value }: { label: string; value: string }) {
     <div className="metric">
       <div className="metric-k">{label}</div>
       <div className="metric-v">{value}</div>
+    </div>
+  )
+}
+
+function MetricSignalCard({
+  title,
+  value,
+  subtitle,
+  trend,
+}: {
+  title: string
+  value: string
+  subtitle: string
+  trend: number
+}) {
+  return (
+    <article className="metric">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div className="metric-k">{title}</div>
+        <span className="status ok">{Math.round(trend)} score</span>
+      </div>
+      <div className="metric-v" style={{ marginTop: 6 }}>{value}</div>
+      <div style={{ marginTop: 8, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 999 }}>
+        <div
+          style={{
+            width: `${Math.max(6, Math.min(100, trend))}%`,
+            height: '100%',
+            borderRadius: 999,
+            background: 'linear-gradient(90deg, rgba(0,229,184,0.45), rgba(0,229,184,0.95))',
+          }}
+        />
+      </div>
+      <p className="note" style={{ marginTop: 8, marginBottom: 0 }}>{subtitle}</p>
+    </article>
+  )
+}
+
+function ListRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13 }}>
+      <span style={{ color: 'var(--text-2)' }}>{label}</span>
+      <span style={{ fontWeight: 600 }}>{value}</span>
     </div>
   )
 }
