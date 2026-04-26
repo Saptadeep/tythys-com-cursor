@@ -20,8 +20,8 @@ export const SERVICES: Service[] = [
   {
     id:          'api-gateway-observability',
     name:        'GatewaySight',
-    tagline:     'API Gateway with deep observability',
-    description: 'Unified API gateway with request tracing, latency/error analytics, and service-level health insights for lean teams that need clarity fast.',
+    tagline:     'API Gateway observability for reliable operations',
+    description: 'Monitor gateway health, trace request flow, and detect latency or error spikes early so your team can resolve incidents faster.',
     category:    'Vertical SaaS',
     status:      'beta',
     icon:        '🛰️',
@@ -30,7 +30,7 @@ export const SERVICES: Service[] = [
     href:        '/gateway-observability',
     apiEndpoint: '/api/services/api-gateway-observability',
     tags:        ['gateway', 'monitoring', 'observability'],
-    mathDomain:  ['Statistics'],
+    mathDomain:  ['Compute Metrics'],
   },
   {
     id:          'beam-calc',
