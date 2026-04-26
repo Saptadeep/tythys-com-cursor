@@ -1,33 +1,19 @@
-import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { AuthPage } from '../pages/AuthPage'
+import { ContactPage } from '../pages/ContactPage'
+import { DashboardPage } from '../pages/DashboardPage'
+import { NotFoundPage } from '../pages/NotFoundPage'
+import { UserCreatePage } from '../pages/UserCreatePage'
 
-const DashboardPage = lazy(() =>
-  import('../pages/DashboardPage').then((module) => ({ default: module.DashboardPage })),
-)
-const ContactPage = lazy(() =>
-  import('../pages/ContactPage').then((module) => ({ default: module.ContactPage })),
-)
-const UserCreatePage = lazy(() =>
-  import('../pages/UserCreatePage').then((module) => ({ default: module.UserCreatePage })),
-)
-const AuthPage = lazy(() =>
-  import('../pages/AuthPage').then((module) => ({ default: module.AuthPage })),
-)
-const NotFoundPage = lazy(() =>
-  import('../pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })),
-)
+const router = createBrowserRouter([
+  { path: '/', element: <Navigate to="/dashboard" replace /> },
+  { path: '/dashboard', element: <DashboardPage /> },
+  { path: '/contact', element: <ContactPage /> },
+  { path: '/users/new', element: <UserCreatePage /> },
+  { path: '/auth/login', element: <AuthPage /> },
+  { path: '*', element: <NotFoundPage /> },
+])
 
 export const AppRouter = () => {
-  return (
-    <Suspense fallback={<div className="route-loading">Loading module...</div>}>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/users/new" element={<UserCreatePage />} />
-        <Route path="/auth/login" element={<AuthPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
-  )
+  return <RouterProvider router={router} />
 }

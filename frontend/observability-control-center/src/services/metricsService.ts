@@ -2,7 +2,7 @@ import type { MetricsResponse, RouteMetric } from '../types/metrics'
 
 const DEFAULT_POINTS = 60
 const MOCK_ENDPOINT_DELAY_MS = 320
-const API_BASE = import.meta.env.VITE_METRICS_API_BASE?.trim()
+const API_BASE = process.env.NEXT_PUBLIC_METRICS_API_BASE?.trim()
 
 const seedRoutes = [
   '/api/v1/metrics',
