@@ -62,7 +62,7 @@ export function Navbar() {
             aria-label="TythysOne — back to overview"
             className="group flex items-center gap-2.5 text-[#dde4f0]"
           >
-            <span className="inline-flex rounded-[7px] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-glow">
+            <span className="inline-flex rounded-[7px] transition-shadow duration-300 group-hover:shadow-glow">
               <BrandGlyph size={28} />
             </span>
             <span className="flex flex-col leading-tight">
