@@ -1,6 +1,6 @@
 # SESSION HANDOFF
 
-Last updated: 2026-04-25 (exit handoff refresh)
+Last updated: 2026-04-26 (exit handoff refresh)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
 
@@ -24,6 +24,7 @@ Implemented:
 - ingest payload schema validation
 - mock API key guard for ingest routes
 - in-memory ingest event store for rapid validation
+- DB-aware ingest/auth wiring present in current backend routes and services
 - service summaries for:
   - `api-gateway-observability`
   - `anomaly-lens`
@@ -35,6 +36,7 @@ Key files:
 - `backend/app/api/routes/ingest.py`
 - `backend/app/services/summary_service.py`
 - `backend/app/services/ingest_service.py`
+- `backend/app/services/auth_api_key.py`
 - `backend/app/schemas/service_summary.py`
 - `backend/app/schemas/ingest.py`
 - `backend/app/core/config.py`
@@ -45,9 +47,17 @@ Key files:
 Implemented:
 - Next.js app scaffold
 - app shell layout (sidebar, topbar, footer)
-- enterprise dark theme with square-edged cards
+- styling foundation ported toward `C:\tythys-com\front_end` look and feel (theme + typography + glass surfaces)
 - overview dashboard wired to backend summary API
 - overview ingestion status card wired to backend ingest latest API
+- copy realignment pass applied for API Revenue Guard messaging (hero/nav/cards/footer text)
+- backend-aligned frontend API routes confirmed:
+  - `/api/services/[serviceId]`
+  - `/api/ingest/latest`
+  - `/api/incidents/current`
+  - `/api/endpoints/health`
+  - `/api/actions/prioritized`
+  - `/api/timeline`
 - extension module placeholders:
   - `/incidents`
   - `/endpoints`
@@ -72,6 +82,10 @@ Key files:
 - `frontend/src/app/api/ingest/latest/route.ts`
 - `frontend/src/lib/backend.ts`
 
+Recent caution:
+- Multiple `next dev` instances caused inconsistent styling/behavior across ports (`3000`, `3001`, `3002`).
+- Always run a single frontend dev process and hard refresh after restart.
+
 ### Docs (`c:\tythys-com-cursor\docs`)
 
 - `PRODUCT_UI_ARCHITECTURE.md`
@@ -90,13 +104,13 @@ start-dev.cmd
 Backend:
 ```cmd
 cd /d C:\tythys-com-cursor\backend
-.venv\Scripts\activate.bat
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+.venv\Scripts\python -m uvicorn app.main:app --host 0.0.0.0 --port 8080
 ```
 
 Frontend:
 ```cmd
 cd /d C:\tythys-com-cursor\frontend
+rmdir /s /q .next
 npm run dev
 ```
 
@@ -124,11 +138,21 @@ curl http://localhost:3000/api/services/api-gateway-observability
 curl http://localhost:3000/api/ingest/latest
 ```
 
+One-time cleanup if behavior looks inconsistent:
+```cmd
+taskkill /F /IM node.exe
+taskkill /F /IM python.exe
+```
+
 ## Session Close Notes
 
 - Current state is consistent across backend, frontend, and docs.
-- No cleanup/revert actions required before next resume.
+- No destructive cleanup/revert actions required before next resume.
 - Keep existing files and structure maintained; continue incrementally from `Next Task`.
+- User intent locked:
+  - Keep styling/theming direction based on `C:\tythys-com\front_end`
+  - Limit further UI work to copy/label refinements unless user explicitly requests visual redesign
+  - Keep frontend in `c:\tythys-com-cursor\frontend` and backend in `c:\tythys-com-cursor\backend`
 
 ## Decisions Locked
 
@@ -140,7 +164,7 @@ curl http://localhost:3000/api/ingest/latest
 
 ## Next Task (resume exactly from here)
 
-Implement **Phase 3 detection foundation** in backend, then expose incident placeholders in frontend:
+Implement **Phase 3 detection foundation** in backend, then expose incident decisioning in frontend:
 
 1. Backend:
    - add in-memory rollup builder on ingested events (1m windows)
@@ -148,8 +172,9 @@ Implement **Phase 3 detection foundation** in backend, then expose incident plac
    - add basic anomaly scoring (EWMA or threshold hybrid) on latency/error
    - add `GET /v1/incidents/current` with initial incident list from scored rollups
 2. Frontend:
-   - add lightweight incidents preview card on overview
-   - fetch incident list through a Next API route
+   - add incidents preview card on overview driven by `/api/incidents/current`
+   - ensure copy emphasizes severity, impact, and fix-first rationale
+   - keep current styling/theming intact; no visual redesign
 3. Docs:
    - update `PRODUCT_UI_ARCHITECTURE.md`
    - update `CUSTOMIZATION_AND_EXTENSION_GUIDE.md`
@@ -168,4 +193,5 @@ Read:
 Then continue from “Next Task” exactly.
 For local CMD instructions only.
 Keep all files maintained.
+Preserve current styling direction unless explicitly asked to redesign.
 ```
