@@ -43,6 +43,18 @@ This document defines the production-intent UI foundation for the app in `c:\tyt
     - `src/app/api/auth/signup/route.ts`
     - `src/app/api/auth/forgot-password/route.ts`
 
+## Embedded observability module notes
+
+- Embedded app path:
+  - `frontend/observability-control-center`
+- Compatibility adjustments for root Next build:
+  - Router migrated to data router pattern (`createBrowserRouter` + `RouterProvider`)
+  - metrics env access normalized for Next TS checks
+  - required package dependencies installed at root frontend
+- Guideline:
+  - keep the embedded module build-compatible with root `npm run build`
+  - avoid Vite-only globals unless isolated by separate tsconfig/project boundaries
+
 ## Overview ingestion visibility
 
 - Overview page now includes an `Ingestion Status` card:

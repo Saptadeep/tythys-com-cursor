@@ -34,6 +34,20 @@ In real backend mode, set:
 
 In mock backend mode, ingestion status is generated locally in `src/lib/backend.ts`.
 
+## Embedded observability-control-center maintenance
+
+If root `npm run build` fails due to files under `frontend/observability-control-center`:
+
+1. Ensure dependencies exist in root frontend:
+   - `react-router-dom`
+   - `recharts`
+   - `vite`
+   - `@vitejs/plugin-react`
+2. Prefer data-router style in module router (`createBrowserRouter` + `RouterProvider`).
+3. Avoid Vite-only globals in shared TS scope (e.g. `import.meta.env`); use env access compatible with current toolchain.
+4. Re-run:
+   - `npm run build`
+
 ## Adding a new module page
 
 1. Add module entry in `src/config/modules.ts`.

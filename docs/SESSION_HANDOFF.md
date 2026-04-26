@@ -1,6 +1,6 @@
 # SESSION HANDOFF
 
-Last updated: 2026-04-26 (exit handoff refresh)
+Last updated: 2026-04-26 (exit handoff refresh, build-fix pass complete)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
 
@@ -58,6 +58,12 @@ Implemented:
   - `/api/endpoints/health`
   - `/api/actions/prioritized`
   - `/api/timeline`
+- `observability-control-center` compatibility fixes applied for root Next build:
+  - router updated to data router (`createBrowserRouter` + `RouterProvider`)
+  - missing deps installed: `react-router-dom`, `recharts`, `vite`, `@vitejs/plugin-react`
+  - TS import extension fix in `observability-control-center/src/main.tsx`
+  - metrics env source switched from `import.meta.env` to `process.env`
+- `npm run build` in `c:\tythys-com-cursor\frontend` verified successful after fixes
 - extension module placeholders:
   - `/incidents`
   - `/endpoints`
@@ -114,6 +120,12 @@ rmdir /s /q .next
 npm run dev
 ```
 
+Frontend production verification:
+```cmd
+cd /d C:\tythys-com-cursor\frontend
+npm run build
+```
+
 ### Environment
 Frontend `.env.local` expected:
 ```env
@@ -164,17 +176,17 @@ taskkill /F /IM python.exe
 
 ## Next Task (resume exactly from here)
 
-Implement **Phase 3 detection foundation** in backend, then expose incident decisioning in frontend:
+Implement **Phase 3/4 backend completion** and corresponding frontend consumption:
 
 1. Backend:
-   - add in-memory rollup builder on ingested events (1m windows)
-   - add `GET /v1/rollups/latest` for debugging aggregate output
-   - add basic anomaly scoring (EWMA or threshold hybrid) on latency/error
-   - add `GET /v1/incidents/current` with initial incident list from scored rollups
+   - finish DB-first rollup/anomaly pipeline validation with seed + deterministic test fixtures
+   - add `GET /v1/rollups/latest` debug endpoint (currently missing)
+   - finalize incident lifecycle transitions (`open`, `acknowledged`, `resolved`)
+   - wire impact snapshots persistence and retrieval
 2. Frontend:
-   - add incidents preview card on overview driven by `/api/incidents/current`
-   - ensure copy emphasizes severity, impact, and fix-first rationale
-   - keep current styling/theming intact; no visual redesign
+   - consume and render real incident/endpoint/action/timeline data on their dedicated pages
+   - add incident preview block on overview (if absent in latest state)
+   - keep current styling/theming direction; no redesign unless requested
 3. Docs:
    - update `PRODUCT_UI_ARCHITECTURE.md`
    - update `CUSTOMIZATION_AND_EXTENSION_GUIDE.md`
