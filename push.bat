@@ -14,7 +14,7 @@ echo Commit Comment: "%COMMENT%"
 		pause
 echo.
 echo.
-@echo T K N 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
+@echo g    h  p_sb5L  2s6tMmbc  7HSi1I0 VztbeW7v   4Ak0IVIQ sd-birthday dd plus 1
 @echo config credential.helper store
 echo.
 
@@ -24,7 +24,7 @@ set err_code=CD_TYTHYS_DOT_COM_DID_NOT_WORK
 
 set err_code=GIT_PUSH_DID_NOT_WORK
 	git add .
-	git commit -m %COMMENT%
+	git commit -m "%COMMENT%"
 	git push
 	IF %ERRORLEVEL% NEQ 0 GOTO E_R_R_O_R
 	@echo [93m   -----------------------------------------------------------
