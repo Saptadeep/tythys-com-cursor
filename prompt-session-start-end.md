@@ -7,9 +7,8 @@
     Then continue from “Next Task” exactly.
     Use CMD instructions only.
 
-# On gong Caution:
-Go through the texts and labels in all pages and find out what texts and copy needs to be change. Do not modify styling, design, typography, spacing, or visual theme unless instructed.
-
+# On-going Caution:
+Go through the texts and labels in all pages and find out what texts and copy needs to be change. Do not modify styling, design, typography, spacing, or visual theme.
 Let me know the changes you detect before implementing.
 
 # Prompt just before GIT:
