@@ -86,6 +86,15 @@ export function Navbar() {
               </li>
             ))}
 
+            <li>
+              <Link
+                href="/auth/login"
+                className="text-sm font-normal tracking-[0.02em] text-dim transition-colors duration-200 hover:text-accent"
+              >
+                Login
+              </Link>
+            </li>
+
             {/* Live services badge — sits between nav links and CTA */}
             <li>
               <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-3 py-1">
@@ -164,7 +173,7 @@ export function Navbar() {
 
               {/* Nav links — compact, full-width tap targets */}
               <nav className="px-3 py-3">
-                {[...NAV_LINKS, { label: 'Contact', href: '#contact' }].map((link, i) => (
+                {[...NAV_LINKS, { label: 'Login', href: '/auth/login' }, { label: 'Contact', href: '#contact' }].map((link, i) => (
                   <motion.a
                     key={link.href}
                     href={link.href}
