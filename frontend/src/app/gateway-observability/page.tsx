@@ -15,7 +15,7 @@ import {
   Waves,
   X,
 } from 'lucide-react'
-import { TopBar } from '@/components/layout/TopBar'
+import { TopBar } from '@/components/layout/Topbar'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { ParticleCanvas } from '@/components/ui/ParticleCanvas'

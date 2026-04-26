@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { TopBar } from '@/components/layout/TopBar'
+import { TopBar } from '@/components/layout/Topbar'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { ParticleCanvas } from '@/components/ui/ParticleCanvas'

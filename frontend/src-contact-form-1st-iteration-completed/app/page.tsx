@@ -3,7 +3,7 @@
 //  Home page — assembles all sections.
 //  Each section is its own component; data flows from config.
 // ─────────────────────────────────────────────────────────────
-import { TopBar }       from '@/components/layout/TopBar'
+import { TopBar }       from '@/components/layout/Topbar'
 import { Navbar }       from '@/components/layout/Navbar'
 import { Footer }       from '@/components/layout/Footer'
 import { Hero }         from '@/components/sections/Hero'
