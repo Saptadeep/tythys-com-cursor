@@ -66,24 +66,16 @@ export function Navbar() {
               <BrandGlyph size={28} />
             </span>
             <span className="flex flex-col leading-tight">
-              <span className="font-display text-[1.2rem] font-bold tracking-[-0.025em] transition-colors duration-200 group-hover:text-accent">
-                Tythys<span className="text-accent transition-colors duration-200 group-hover:text-gold">One</span>
+              <span className="font-display text-[1.1rem] font-bold tracking-[-0.005em] transition-colors duration-200 group-hover:text-accent">
+                Tythys<span className="text-accent transition-colors duration-200 group-hover:text-[#dde4f0]">One</span>
               </span>
-              <span className="font-mono text-[0.58rem] uppercase tracking-[0.22em] text-dim/70 transition-colors duration-200 group-hover:text-dim">
+              <span className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-dim/70 transition-colors duration-200 group-hover:text-dim">
                 {subline}
               </span>
             </span>
           </Link>
 
-          {/* Live services badge */}
-          <div className="hidden items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-3 py-1 xs:flex">
-            <Zap size={9} className="text-accent" />
-            <span className="font-mono text-[0.58rem] tracking-[0.12em] text-accent">
-              {LIVE_COUNT} LIVE
-            </span>
-          </div>
-
-          {/* Desktop links */}
+          {/* Desktop links — right-side cluster (links → live pill → CTA) */}
           <ul className="hidden items-center gap-8 md:flex">
             {NAV_LINKS.map(link => (
               <li key={link.href}>
@@ -93,6 +85,17 @@ export function Navbar() {
                 </a>
               </li>
             ))}
+
+            {/* Live services badge — sits between nav links and CTA */}
+            <li>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-3 py-1">
+                <Zap size={9} className="text-accent" />
+                <span className="font-mono text-[0.58rem] tracking-[0.12em] text-accent">
+                  {LIVE_COUNT} LIVE
+                </span>
+              </div>
+            </li>
+
             <li>
               <a href="#contact" className="btn-ghost text-sm">
                 Get in Touch

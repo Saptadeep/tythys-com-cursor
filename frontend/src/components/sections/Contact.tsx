@@ -91,7 +91,14 @@ export function Contact() {
   }
 
   return (
-    <section id="contact" className="relative z-10">
+    <section
+      id="contact"
+      className="relative z-10"
+      style={{
+        background:
+          'linear-gradient(180deg, transparent, rgba(0,229,184,0.022) 50%, transparent)',
+      }}
+    >
       <div ref={ref} className="mx-auto max-w-[1300px] px-4 py-14 sm:px-7 sm:py-20 md:px-10 lg:px-16 lg:py-24 xl:px-20">
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.35fr] lg:gap-20">
