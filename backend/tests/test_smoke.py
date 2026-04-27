@@ -1,6 +1,8 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.main import validate_runtime_settings
 
 
 def test_health():
@@ -48,3 +50,18 @@ def test_ingest_memory_mode_accepts_batch():
         assert r.status_code == 200
         body = r.json()
         assert body["accepted"] is True
+
+
+def test_require_database_guard_raises_without_database_url():
+    from app.core.config import settings
+
+    original_require_database = settings.require_database
+    original_database_url = settings.database_url
+    settings.require_database = True
+    settings.database_url = None
+    try:
+        with pytest.raises(RuntimeError, match="DATABASE_URL is required"):
+            validate_runtime_settings()
+    finally:
+        settings.require_database = original_require_database
+        settings.database_url = original_database_url

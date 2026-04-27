@@ -21,8 +21,14 @@ from app.db.session import get_engine, get_session_factory
 from app.workers.rollup_worker import rollup_loop
 
 
+def validate_runtime_settings() -> None:
+    if settings.require_database and not settings.database_url:
+        raise RuntimeError("DATABASE_URL is required when REQUIRE_DATABASE=true.")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    validate_runtime_settings()
     eng = get_engine()
     if eng is not None and settings.bootstrap_db_schema:
         Base.metadata.create_all(bind=eng)
