@@ -4,9 +4,16 @@ import { useRef }        from 'react'
 import { motion, useInView } from 'motion/react'
 import { ArrowRight, ExternalLink } from 'lucide-react'
 import Link              from 'next/link'
-import { SERVICES, STATUS_CONFIG } from '@/config/services'
+import { SERVICES, STATUS_CONFIG, PILLARS } from '@/config/services'
 import { cn }            from '@/lib/cn'
 import type { Service }  from '@/types'
+
+// Quick lookup so each card can render its pillar chips with the right
+// symbol + colour without recomputing on every render.
+const PILLAR_BY_ID = Object.fromEntries(PILLARS.map(p => [p.id, p])) as Record<
+  (typeof PILLARS)[number]['id'],
+  (typeof PILLARS)[number]
+>
 
 function ProductCard({ service, index }: { service: Service; index: number }) {
   const ref    = useRef<HTMLDivElement>(null)
@@ -81,13 +88,41 @@ function ProductCard({ service, index }: { service: Service; index: number }) {
 
           {/* Math domains */}
           {service.mathDomain && service.mathDomain.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-1.5">
+            <div className="mb-3 flex flex-wrap gap-1.5">
               {service.mathDomain.map(d => (
                 <span key={d}
                       className="rounded-sm border border-accent/10 bg-accent/5 px-2 py-0.5 font-mono text-[0.55rem] tracking-wide text-accent/70">
                   {d}
                 </span>
               ))}
+            </div>
+          )}
+
+          {/* Pillar chips — which Tythys pillars this tool exercises */}
+          {service.pillars && service.pillars.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-1.5">
+              <span className="font-mono text-[0.54rem] uppercase tracking-[0.14em] text-dim/60">
+                Pillars
+              </span>
+              {service.pillars.map(pid => {
+                const p = PILLAR_BY_ID[pid]
+                if (!p) return null
+                return (
+                  <span
+                    key={pid}
+                    title={p.label}
+                    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[0.55rem] tracking-wide"
+                    style={{
+                      borderColor: `${p.accentColor}33`,
+                      background:  `${p.accentColor}10`,
+                      color:       p.accentColor,
+                    }}
+                  >
+                    <span className="text-[0.7rem] leading-none">{p.symbol}</span>
+                    <span className="hidden xs:inline">{p.label.split(' ')[0]}</span>
+                  </span>
+                )
+              })}
             </div>
           )}
 
@@ -152,10 +187,12 @@ export function Products() {
           <motion.p
             initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="section-body mb-10 max-w-[480px]"
+            className="section-body mb-10 max-w-[520px]"
           >
-            A modular suite across infrastructure, engineering, and finance.
-            Each service ships with a clear scope, validated outputs, and clean API boundaries.
+            Each tool below is one of the four pillars made tangible &mdash;
+            quantitative reasoning, modeling, scientific thinking, or
+            problem-solving compressed into something you can run, validate,
+            and rely on.
           </motion.p>
         </div>
 

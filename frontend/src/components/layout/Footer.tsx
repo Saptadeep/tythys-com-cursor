@@ -26,7 +26,7 @@ export function Footer() {
               </span>
             </a>
             <p className="max-w-xs font-mono text-[0.64rem] leading-relaxed text-dim">
-              Multiservice console for infrastructure, engineering, and finance tools.
+              Quantitative reasoning, modeling, and scientific thinking &mdash; turned into working software.
             </p>
           </div>
 

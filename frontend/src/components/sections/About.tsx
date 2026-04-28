@@ -36,18 +36,21 @@ export function About() {
               transition={{ delay: 0.1, duration: 0.6 }}
               className="section-body mb-4 max-w-full"
             >
-              Tythys is one person with a programming background, actively learning
-              the mathematics and physics that power these tools. Each product is built
-              carefully — understood before it&apos;s shipped, validated against known results,
-              and scoped to what can be done well right now.
+              Tythys is one person learning by building &mdash; treating the math
+              and physics behind each tool as the curriculum, and the tool itself
+              as the exam. Quantitative reasoning, modeling, and scientific thinking
+              get internalised the same way they were always meant to: by being put
+              to work on something real.
             </motion.p>
             <motion.p
               initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.15, duration: 0.6 }}
               className="section-body mb-6 max-w-full"
             >
-              The gap between $50K enterprise software and a spreadsheet is real.
-              That&apos;s the space Tythys is building into, one tool at a time.
+              Every product is scoped to what can be implemented correctly today,
+              validated against known results, and shipped only when it holds up.
+              The gap between $50K enterprise software and a spreadsheet is real;
+              that&apos;s the space Tythys is building into, one tool at a time.
             </motion.p>
 
             {/* Skill tags */}

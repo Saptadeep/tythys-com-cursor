@@ -24,8 +24,18 @@ export interface Service {
   href?:       string           // route if the tool page exists
   apiEndpoint?: string          // backend endpoint if live
   tags?:        string[]
-  mathDomain?:  MathDomain[]   // which math areas this uses
+  mathDomain?:  MathDomain[]    // which math areas this uses
+  pillars?:     Pillar[]        // which Tythys pillars the tool exercises
 }
+
+// ── Tythys pillars — the four-part operating spine ────────
+//  Every product, every page, every decision should map
+//  back to at least one of these.
+export type Pillar =
+  | 'quantitative-reasoning'
+  | 'modeling'
+  | 'scientific-thinking'
+  | 'problem-solving'
 
 // ── Service categories — add new ones here to extend ──────
 export type ServiceCategory =

@@ -14,7 +14,52 @@
 //  automatically from this file.
 // ─────────────────────────────────────────────────────────────
 
-import type { Service, ProcessStep } from '@/types'
+import type { Service, ProcessStep, Pillar } from '@/types'
+
+// ── The four Tythys pillars ────────────────────────────────
+//  This is the operating spine of every product, page, and
+//  decision. Every tool we build exercises at least one.
+export const PILLARS: Array<{
+  id:          Pillar
+  symbol:      string
+  label:       string
+  short:       string
+  description: string
+  accentColor: string
+}> = [
+  {
+    id:          'quantitative-reasoning',
+    symbol:      'Σ',
+    label:       'Quantitative Reasoning',
+    short:       'Numbers that mean something',
+    description: 'Turning vague questions into measurable ones. Units, scales, error bars, sanity checks — the discipline of reasoning with numbers instead of about them.',
+    accentColor: '#00e5b8',
+  },
+  {
+    id:          'modeling',
+    symbol:      '∇',
+    label:       'Modeling',
+    short:       'Math that mirrors reality',
+    description: 'Finding the equations and abstractions that capture how a system actually behaves — beam under load, portfolio under risk, signal under noise.',
+    accentColor: '#8b7fff',
+  },
+  {
+    id:          'scientific-thinking',
+    symbol:      '⚛',
+    label:       'Scientific Thinking',
+    short:       'Hypothesis · test · revise',
+    description: 'Treating each tool as an experiment: state the assumption, validate against known results, fail loudly when wrong, ship only what holds up.',
+    accentColor: '#ffcb47',
+  },
+  {
+    id:          'problem-solving',
+    symbol:      '⟶',
+    label:       'Problem-Solving + Software',
+    short:       'From insight to interface',
+    description: 'Compressing the loop from "I think this is the model" to "anyone can run it" — clean code, validated outputs, a UI that respects the user.',
+    accentColor: '#ff6b9d',
+  },
+]
 
 export const SERVICES: Service[] = [
   {
@@ -31,6 +76,7 @@ export const SERVICES: Service[] = [
     apiEndpoint: '/api/services/api-gateway-observability',
     tags:        ['gateway', 'monitoring', 'observability'],
     mathDomain:  ['Compute Metrics'],
+    pillars:     ['quantitative-reasoning', 'problem-solving'],
   },
   {
     id:          'beam-calc',
@@ -46,6 +92,7 @@ export const SERVICES: Service[] = [
     apiEndpoint: '/api/services/beam-calc',
     tags:        ['structural', 'civil', 'mechanical'],
     mathDomain:  ['Calculus', 'Physics'],
+    pillars:     ['modeling', 'scientific-thinking', 'problem-solving'],
   },
   {
     id:          'physics-sim',
@@ -58,6 +105,7 @@ export const SERVICES: Service[] = [
     accentColor: '#00e5b8',
     price:       'Contact for pricing',
     mathDomain:  ['Calculus', 'Physics', 'Numerical Methods'],
+    pillars:     ['modeling', 'scientific-thinking', 'problem-solving'],
   },
   {
     id:          'portfolio-sigma',
@@ -70,6 +118,7 @@ export const SERVICES: Service[] = [
     accentColor: '#ffcb47',
     price:       'Contact for pricing',
     mathDomain:  ['Stochastic Processes', 'Statistics', 'Linear Algebra'],
+    pillars:     ['quantitative-reasoning', 'modeling', 'problem-solving'],
   },
   {
     id:          'math-canvas',
@@ -82,6 +131,7 @@ export const SERVICES: Service[] = [
     accentColor: '#ff6b9d',
     price:       'School licensing',
     mathDomain:  ['Linear Algebra', 'Calculus', 'Physics'],
+    pillars:     ['quantitative-reasoning', 'scientific-thinking'],
   },
   {
     id:          'anomaly-lens',
@@ -94,6 +144,7 @@ export const SERVICES: Service[] = [
     accentColor: '#00cfff',
     price:       'Contact for pricing',
     mathDomain:  ['Statistics', 'Signal Processing'],
+    pillars:     ['quantitative-reasoning', 'scientific-thinking', 'problem-solving'],
   },
   {
     id:          'custom-models',
@@ -106,30 +157,33 @@ export const SERVICES: Service[] = [
     accentColor: '#00e5b8',
     price:       'Contact for pricing',
     href:        '#contact',
+    pillars:     ['modeling', 'problem-solving'],
   },
 ]
 
 // ── Process methodology steps ──────────────────────────────
+//  The learn-by-building loop. Every tool moves through these
+//  four steps; each one maps back to one of the four pillars.
 export const PROCESS_STEPS: ProcessStep[] = [
   {
     number:      '01',
-    title:       'Understand the Problem',
-    description: 'Start with what the tool needs to compute. Research and validate the model before writing a single line of code.',
+    title:       'Frame the Question',
+    description: 'Translate a vague need into a measurable one. What are the inputs, the outputs, the units, the failure modes? Quantitative reasoning before code.',
   },
   {
     number:      '02',
-    title:       'Build a Working Core',
-    description: 'Python — NumPy, SciPy, or plain arithmetic — checked against textbook examples and known outputs.',
+    title:       'Build the Model',
+    description: 'Find or derive the equations. Implement the core in Python — NumPy, SciPy, or plain arithmetic — and check it against textbook cases and known answers.',
   },
   {
     number:      '03',
-    title:       'Add a Clean Interface',
-    description: 'A usable web front-end so the tool is accessible to someone who needs an answer, not a programming environment.',
+    title:       'Test Like a Scientist',
+    description: 'Hypothesise, perturb, compare. Edge cases, sanity checks, validation suites. If it disagrees with reality, the model is wrong — not reality.',
   },
   {
     number:      '04',
-    title:       'Release When Ready',
-    description: "No shipping half-finished tools. If it's not giving correct results, it doesn't go live.",
+    title:       'Ship a Tool, Not a Notebook',
+    description: 'Wrap the validated core in a clean interface so someone who needs an answer — not a programming environment — can actually use it.',
   },
 ]
 

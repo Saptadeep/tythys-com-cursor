@@ -3,14 +3,25 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title:       { default: 'Tythys — Engineering Intelligence', template: '%s | Tythys' },
-  description: 'A growing collection of focused tools — simulation, computation, and data analysis — built carefully, validated against real results.',
-  keywords:    ['engineering calculator', 'beam deflection', 'physics simulation', 'quantitative finance', 'structural engineering'],
+  title:       { default: 'Tythys — Quantitative Reasoning, Modeling & Scientific Software', template: '%s | Tythys' },
+  description: 'Tythys turns quantitative reasoning, modeling, and scientific thinking into software you can actually use — focused tools, validated against real results.',
+  keywords:    [
+    'quantitative reasoning',
+    'mathematical modeling',
+    'scientific computing',
+    'engineering calculator',
+    'beam deflection',
+    'physics simulation',
+    'quantitative finance',
+    'monte carlo',
+    'structural engineering',
+    'edtech math',
+  ],
   authors:     [{ name: 'Tythys', url: 'https://tythys.com' }],
   metadataBase: new URL('https://tythys.com'),
   openGraph: {
-    title:       'Tythys — Engineering Intelligence',
-    description: 'Hard problems, working tools.',
+    title:       'Tythys — Quantitative Reasoning, Modeling & Scientific Software',
+    description: 'Hard problems, working tools. Built on quantitative reasoning, modeling, scientific thinking, and software.',
     url:         'https://tythys.com',
     siteName:    'Tythys',
     type:        'website',

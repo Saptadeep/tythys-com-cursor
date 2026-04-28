@@ -3,11 +3,13 @@
 import { motion, cubicBezier }      from 'motion/react'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 
+// Maps 1:1 to PILLARS in src/config/services.ts.
+// Hero stats row is the first place a visitor sees the four-pillar spine.
 const STATS = [
-  { symbol: '∇',  label: 'Physics-Based'  },
-  { symbol: 'λ²', label: 'Linear Algebra' },
-  { symbol: '∫∞', label: 'Calculus-Driven'},
-  { symbol: 'Σ',  label: 'Precise Compute'},
+  { symbol: 'Σ',  label: 'Quantitative Reasoning' },
+  { symbol: '∇',  label: 'Modeling'                },
+  { symbol: '⚛',  label: 'Scientific Thinking'    },
+  { symbol: '⟶',  label: 'Problem-Solving'        },
 ]
 
 const fadeUp = (delay = 0) => ({
@@ -38,7 +40,7 @@ export function Hero() {
             <span className="relative inline-flex h-[5px] w-[5px] rounded-full bg-accent" />
           </span>
           <span className="font-mono text-[0.62rem] uppercase tracking-[0.1em] text-accent">
-            Simulation · Computation · Data
+            Quantitative · Modeling · Scientific · Software
           </span>
         </motion.div>
 
@@ -55,12 +57,14 @@ export function Hero() {
 
         {/* Subtitle */}
         <motion.p {...fadeUp(0.2)}
-          className="mb-8 max-w-[540px] font-light leading-[1.75] text-dim"
+          className="mb-8 max-w-[560px] font-light leading-[1.75] text-dim"
           style={{ fontSize: 'clamp(0.88rem, 3vw, 1.05rem)' }}
         >
-          A growing collection of focused tools — simulation, computation,
-          and data analysis — built carefully, validated against real results,
-          and priced for the people who actually need them.
+          Tythys turns <span className="text-[#dde4f0]">quantitative reasoning</span>,{' '}
+          <span className="text-[#dde4f0]">modeling</span>, and{' '}
+          <span className="text-[#dde4f0]">scientific thinking</span> into
+          software you can actually use — focused tools, validated against
+          real results, priced for the people who need them.
         </motion.p>
 
         {/* CTAs */}
@@ -68,8 +72,8 @@ export function Hero() {
           <a href="#products" className="btn-primary">
             Explore Tools <ArrowRight size={16} />
           </a>
-          <a href="#about" className="btn-secondary">
-            About Tythys
+          <a href="#pillars" className="btn-secondary">
+            Our Approach
           </a>
         </motion.div>
 

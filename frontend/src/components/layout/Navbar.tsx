@@ -16,6 +16,7 @@ const SUBLINE_BY_PATH: Array<{ test: (p: string) => boolean; label: string }> = 
 ]
 
 const NAV_LINKS = [
+  { label: 'Pillars',  href: '#pillars'  },
   { label: 'Products', href: '#products' },
   { label: 'Approach', href: '#process'  },
   { label: 'About',    href: '#about'    },

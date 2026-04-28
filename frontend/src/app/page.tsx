@@ -7,6 +7,7 @@ import { TopBar }       from '@/components/layout/Topbar'
 import { Navbar }       from '@/components/layout/Navbar'
 import { Footer }       from '@/components/layout/Footer'
 import { Hero }         from '@/components/sections/Hero'
+import { Pillars }      from '@/components/sections/Pillars'
 import { Products }     from '@/components/sections/Products'
 import { Process }      from '@/components/sections/Process'
 import { About }        from '@/components/sections/About'
@@ -32,6 +33,7 @@ export default function HomePage() {
       {/* Page content */}
       <main className="relative z-10">
         <Hero />
+        <Pillars />
         <Products />
         <Process />
         <About />
