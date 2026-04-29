@@ -19,9 +19,9 @@ function ProductCard({ service, index }: { service: Service; index: number }) {
   const ref    = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const sc     = STATUS_CONFIG[service.status]
-  const badgeLabel = service.id === 'beam-calc' ? 'Coming Soon' : service.id === 'custom-models' ? '' : sc.label
+  const badgeLabel = service.id === 'custom-models' ? '' : sc.label
 
-  const hasLink = service.href && service.href !== '#contact' && service.status === 'live' && service.id !== 'beam-calc'
+  const hasLink = service.href && service.href !== '#contact' && service.status === 'live'
 
   return (
     <motion.div
@@ -134,7 +134,7 @@ function ProductCard({ service, index }: { service: Service; index: number }) {
               ) : (
                 service.price
               )}
-              {service.apiEndpoint && service.id !== 'beam-calc' && service.id !== 'custom-models' && (
+              {service.apiEndpoint && service.id !== 'custom-models' && (
                 <span className="ml-2 rounded-full border border-accent/20 bg-accent/8 px-2 py-0.5 text-[0.55rem] text-accent">
                   ⚡ Live
                 </span>

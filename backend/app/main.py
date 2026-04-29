@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.routes.actions import router as actions_router
+from app.api.routes.beam_calc import router as beam_calc_router
 from app.api.routes.endpoints import router as endpoints_router
 from app.api.routes.health import router as health_router
 from app.api.routes.incidents import router as incidents_router
@@ -62,3 +63,4 @@ app.include_router(incidents_router, prefix="/v1")
 app.include_router(endpoints_router, prefix="/v1")
 app.include_router(actions_router, prefix="/v1")
 app.include_router(timeline_router, prefix="/v1")
+app.include_router(beam_calc_router, prefix="/v1")

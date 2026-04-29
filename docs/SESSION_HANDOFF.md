@@ -1,9 +1,9 @@
 # SESSION HANDOFF
 
-Last updated: 2026-04-28 (four-pillar pivot + EngineerCalc Week 1 scaffolding shipped)
+Last updated: 2026-04-29 (EngineerCalc Week 3 shipped — FastAPI route + integration tests)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: `4ec3238  Math-physics-chem-focus-1st-pass`
+Latest commit on `main`: `4ec3238  Math-physics-chem-focus-1st-pass` (Week-3 changes pending commit)
 
 > Read top-to-bottom. The first half captures the **current state** of the
 > project. The second half (under "Prior Context") preserves the earlier
@@ -88,27 +88,40 @@ Files added this session:
 - `backend/tests/test_beam_calc.py` — 26-test validation suite. Formula tests, Roark numeric reference tests, public-API tests, edge-case tests.
 - `backend/scripts/verify_beam_refs.py` — independent re-derivation of the four numeric reference values used in the test suite (third witness, run as a sanity check).
 
-### 2.3  Test status
+### 2.3  EngineerCalc Week 3 — FastAPI route + integration tests (this session, 2026-04-29)
+
+Files added or edited:
+- `backend/app/api/routes/beam_calc.py` — **new**. `POST /v1/beam-calc/solve`. The single place that does unit conversion: `?units=imperial` interprets the request as ft / lbf / lbf·ft / lbf/ft / psi / in⁴ / in / lbf·in² and returns the response in the same imperial units. Domain and validation errors → HTTP 422.
+- `backend/app/main.py` — included `beam_calc_router` under `/v1`.
+- `backend/app/services/beam_calc/types.py` — added `units: Literal["si","imperial"] = "si"` to `BeamSolveResponse` (additive, non-breaking; the core solver always writes `"si"`, the route flips to `"imperial"` after conversion).
+- `backend/tests/test_beam_calc_api.py` — **new**. 9 `TestClient` tests: 4 happy-path Roark references (one per load case), 1 response-shape contract, 3 validation-error tests (negative span, point-load outside span, unknown load discriminator), 1 imperial round-trip pinning the conversion factors.
+- `backend/requirements.txt` — added `httpx==0.28.1` (Starlette `TestClient` dependency that wasn't pinned).
+- `frontend/src/app/api/beam-calc/solve/route.ts` — **new**. Next.js proxy: `POST /api/beam-calc/solve` → backend `/v1/beam-calc/solve`. Forwards body + `units` query, surfaces 422 with the structured backend payload so the Week-4 UI can render field-level messages without re-doing validation client-side.
+- `frontend/src/config/services.ts` — `beam-calc.apiEndpoint` updated from the placeholder `/api/services/beam-calc` to the real `/api/beam-calc/solve`. `status` left as-is (Products.tsx still hard-codes the badge to "Coming Soon" for `beam-calc`); status will only become honest after Week 4 lands.
+- `docs/products/engineer-calc/02-learnings.md` — **new**. Journal of Week-2 + Week-3 lessons.
+
+### 2.4  Test status
 
 ```cmd
 cd /d C:\tythys-com-cursor\backend
-.venv\Scripts\python -m pytest tests\test_beam_calc.py -v
+.venv\Scripts\python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v
 ```
 
-Last run (this session): **26 / 26 passed** in 0.18 s. The failures from
-the first attempt were all in **hand-computed numeric reference values
-inside the test docstrings** — the implementation matched the closed-form
-formulas on the first compile. The reference values were corrected in the
-same session and re-verified against `backend/scripts/verify_beam_refs.py`.
+Last run (this session): **35 / 35 passed** in 1.20 s.
+- 26 / 26 from the original `tests/test_beam_calc.py` gate (unchanged).
+- 9 / 9 from the new `tests/test_beam_calc_api.py` integration suite.
 
 The pre-existing backend smoke tests (`tests/test_smoke.py`,
-`tests/test_hybrid_modes.py`) were not modified and should remain green.
+`tests/test_hybrid_modes.py`) were not modified. They use `TestClient`
+under `with` (which triggers the FastAPI lifespan) and therefore depend
+on a reachable Postgres given the current `.env` defaults. The new
+`test_beam_calc_api.py` patches `settings.database_url = None` at module
+import time so the EngineerCalc HTTP gate runs offline.
 
-### 2.4  Type / lint status
+### 2.5  Type / lint status
 
-- TypeScript: `npx tsc --noEmit -p tsconfig.json` — clean (verified at end of UI pass).
-- Frontend lints: clean across all edited files.
-- Python: import ordering / Pydantic v2 conformance — clean; no warnings beyond the project-wide `pytest-asyncio` deprecation noise.
+- TypeScript: clean across all edited files (frontend lints clean for `frontend/src/app/api/beam-calc/solve/route.ts` and `frontend/src/config/services.ts`).
+- Python: lints clean across `app/api/routes/beam_calc.py`, `app/main.py`, `app/services/beam_calc/types.py`, and `tests/test_beam_calc_api.py`. No warnings beyond the project-wide `pytest-asyncio` deprecation noise.
 
 ---
 
@@ -118,8 +131,8 @@ The pre-existing backend smoke tests (`tests/test_smoke.py`,
 |---|---|---|
 | 1 | **DONE** | Spec + `01-physics.md` curriculum + Python skeleton + failing TDD tests. |
 | 2 | **DONE** (compressed into Week 1) | Implement the four load cases until every Roark test is green. (Achieved on first compile because formulas were derived against the docs.) |
-| 3 | **NEXT** | Wrap the core in a FastAPI route `/v1/beam-calc/solve`, add request/response schemas at the API edge (with unit conversion), integration tests via `TestClient`. |
-| 4 |  | Build the `/beam-calculator` Next.js page: typed inputs, units toggle (SI / Imperial), live deflection plot + bending-moment diagram + shear diagram. |
+| 3 | **DONE** (this session, 2026-04-29) | `POST /v1/beam-calc/solve` with edge-side SI ↔ Imperial conversion; 9 `TestClient` integration tests pinned to the same Roark reference values as the kernel tests; Next.js proxy at `/api/beam-calc/solve`; learnings doc `02-learnings.md`. |
+| 4 | **NEXT** | Build the `/beam-calculator` Next.js page: typed inputs, units toggle (SI / Imperial) wired to the `?units=imperial` query param, live deflection plot + bending-moment diagram + shear diagram. |
 | 5 |  | Section library (rectangle, circle, W-shape from a small AISC JSON), PDF report export, error/edge-case polish. |
 | 6 |  | Soft launch: pricing page, freemium gate, ≥ 5 user interviews, capture feedback loop. |
 
@@ -130,33 +143,45 @@ table including monetisation tiers and success gates.
 
 ## 4. Next Task (resume exactly from here)
 
-**Week 3 — FastAPI route + integration tests for EngineerCalc.**
+**Week 4 — Build the `/beam-calculator` Next.js page.**
 
 Concretely:
 
-1. **Backend route** `backend/app/api/routes/beam_calc.py`
-   - `POST /v1/beam-calc/solve` accepting `BeamSolveRequest` (already typed in `app/services/beam_calc/types.py`) and returning `BeamSolveResponse`.
-   - Wire it into `backend/app/main.py` next to the existing routers.
-   - Add a `units` query / body field at the **API edge** that converts Imperial inputs → SI before calling `solve()` and SI outputs → Imperial on return. The core stays SI-only.
-   - Reject `BeamSolveRequest` validation errors as HTTP 422 with a clean message; reject domain errors (e.g. `position_m > length_m`) as HTTP 422 too.
+1. **Page route** `frontend/src/app/beam-calculator/page.tsx`
+   - Server component shell + a client component for the form & charts.
+   - Match the visual language of `frontend/src/components/sections/Pillars.tsx` and `Products.tsx` (glass card on `bg-card`, `accent-dim` border, `font-display` headline, `eyebrow` label).
+   - Dual-column layout above `lg`: inputs on the left, results on the right; stacked on small screens.
 
-2. **Integration tests** `backend/tests/test_beam_calc_api.py`
-   - `TestClient`-based.
-   - One happy-path test per load case, asserting the published response shape and that `max_deflection_m` matches the reference values listed in `tests/test_beam_calc.py::TestRoarkNumericReferences`.
-   - One validation-error test (e.g. negative span).
-   - One unit-conversion round-trip test if `units=imperial` is wired.
+2. **Inputs (typed)**
+   - Span (length) with SI / Imperial toggle (segmented control). The toggle drives the `?units=` query the proxy forwards.
+   - Material picker — at minimum a "Custom (E)" option and 1–2 presets (Steel A36, Aluminium 6061). E shown in current units.
+   - Section: "Custom (I, c)" only for now. (Library lands in Week 5.)
+   - Load picker — discriminated select on the four kinds; conditional fields for each (`magnitude`, `position`, `intensity`, `moment`).
+   - All numeric fields: `inputmode="decimal"`, `step` matched to the unit, helpful placeholder.
+   - Submit button disabled until the request is structurally complete.
 
-3. **Frontend API stub** (optional Week-3 stretch)
-   - `frontend/src/app/api/beam-calc/solve/route.ts` proxying to the backend, mirroring the existing `frontend/src/app/api/services/[serviceId]/route.ts` pattern.
-   - This unblocks Week 4's UI work.
+3. **Wire to the proxy**
+   - `POST /api/beam-calc/solve?units=<si|imperial>` with the constructed body.
+   - On 200 → render the results panel.
+   - On 422 → use `detail` (the forwarded backend payload) to highlight the offending field and show its message inline.
+   - On 5xx → show a top-of-form banner with the upstream message.
 
-4. **Update the marketing card** in `frontend/src/config/services.ts`
-   - When the route is live, change the `beam-calc` entry's `apiEndpoint` from the placeholder to the real `/api/beam-calc/solve` and confirm the `live` status badge is honest.
-   - **Do not** flip it to live until the integration tests pass.
+4. **Visualisation**
+   - Use `recharts` (already in `frontend/package.json`) for three stacked line charts: deflection δ(x), bending moment M(x), shear V(x).
+   - X-axis: position along the beam in current units.
+   - Annotate `max_deflection_at_m`, `max_bending_moment_at_m`, and the support reactions on the relevant chart.
+   - Include the `roark_reference` string and `flexural_rigidity_ei_nm2` in a small "verification" footer panel — that's the trust signal.
 
-5. **Docs**
-   - Add `docs/products/engineer-calc/02-learnings.md` capturing what was learned during Week 2 (in particular: the hand-arithmetic-vs-implementation lesson; the symmetry test that caught the offset-load mirror bug before it ever existed; the value of a third-witness verifier script).
-   - Update **this** `SESSION_HANDOFF.md` at end of Week 3 with the new state.
+5. **Marketing card honesty**
+   - When the page exists and renders successfully end-to-end against the backend, **then** flip `services.ts → beam-calc → status` to `'live'` and remove the hard-coded "Coming Soon" override in `frontend/src/components/sections/Products.tsx` (`badgeLabel = service.id === 'beam-calc' ? 'Coming Soon' : ...`).
+
+6. **Tests**
+   - Frontend: at least one component test (or Playwright smoke) that submits the canonical centre-load case (P=10 000 N, L=6 m, E=200 GPa, I=8.2e-6 m⁴) and asserts `δ_max ≈ 0.02743902439024390 m` shows up in the rendered output. The number is the same Roark reference pinned in `tests/test_beam_calc.py` and `tests/test_beam_calc_api.py`; if the UI ever drifts, all three layers should drift together or one of them is wrong.
+   - Backend: no new tests required for Week 4. Re-run the Week-3 gate as the regression check.
+
+7. **Docs**
+   - Add `docs/products/engineer-calc/03-ui-design.md` with screenshots of the final page, the chart legend conventions, and the SI ↔ Imperial unit-suffix table the UI uses.
+   - Update **this** `SESSION_HANDOFF.md` at end of Week 4 with the new state.
 
 ---
 
@@ -185,11 +210,27 @@ npm run dev
 ### Run the EngineerCalc test suite (this is the gate)
 ```cmd
 cd /d C:\tythys-com-cursor\backend
-.venv\Scripts\python -m pytest tests\test_beam_calc.py -v
+.venv\Scripts\python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v
 ```
 
-Expected output: `26 passed`. If anything fails, **do not move on to
-Week 3** — fix it first.
+Expected output: `35 passed` (26 unit + 9 integration). If anything
+fails, **do not move on to Week 4** — fix it first.
+
+### Hit the new HTTP endpoint manually (CMD)
+```cmd
+curl -X POST http://localhost:8080/v1/beam-calc/solve ^
+  -H "Content-Type: application/json" ^
+  -d "{\"length_m\":6.0,\"material\":{\"name\":\"Steel A36\",\"youngs_modulus_pa\":200e9},\"section\":{\"shape\":\"custom\",\"second_moment_m4\":8.2e-6,\"label\":\"Test\"},\"load\":{\"kind\":\"point_load_centre\",\"magnitude_n\":10000.0},\"sample_points\":51}"
+```
+`max_deflection_m` should be `0.02743902439024390`.
+
+Frontend proxy (with the dev server running on `:3000`):
+```cmd
+curl -X POST http://localhost:3000/api/beam-calc/solve ^
+  -H "Content-Type: application/json" ^
+  -d "{\"length_m\":6.0,\"material\":{\"name\":\"Steel A36\",\"youngs_modulus_pa\":200e9},\"section\":{\"shape\":\"custom\",\"second_moment_m4\":8.2e-6,\"label\":\"Test\"},\"load\":{\"kind\":\"point_load_centre\",\"magnitude_n\":10000.0},\"sample_points\":51}"
+```
+Same number wrapped in `{"ok":true,"data":{...}}`.
 
 ### Run the independent reference verifier
 ```cmd
@@ -259,23 +300,24 @@ Read first:
 - c:\tythys-com-cursor\docs\SESSION_HANDOFF.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\00-spec.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\01-physics.md
-Then continue from "Next Task" exactly (Week 3: FastAPI route + integration tests for EngineerCalc).
+- c:\tythys-com-cursor\docs\products\engineer-calc\02-learnings.md
+Then continue from "Next Task" exactly (Week 4: build the /beam-calculator Next.js page wired to /api/beam-calc/solve).
 Local CMD instructions only.
 Keep all files maintained — including the preserved API Revenue Guard subsystems.
 Preserve the four-pillar UI direction and the build-to-learn methodology.
-Run `python -m pytest tests\test_beam_calc.py -v` from C:\tythys-com-cursor\backend before any new work — it must report 26 passed.
+Run `python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v` from C:\tythys-com-cursor\backend before any new work — it must report 35 passed.
 ```
 
 ---
 
 ## 9. Session-close checklist (for the human, before exit)
 
-- [x] Latest commit pushed: `Math-physics-chem-focus-1st-pass`
-- [x] All 26 EngineerCalc tests green
-- [x] TypeScript clean
-- [x] Lints clean across all edited frontend files
-- [x] No destructive deletions; legacy API Revenue Guard subsystems preserved
-- [x] This handoff updated with the four-pillar pivot + EngineerCalc state + Week 3 next-task
+- [ ] Commit Week-3 changes (this session is currently uncommitted; latest pushed commit is still `Math-physics-chem-focus-1st-pass`).
+- [x] All 35 EngineerCalc tests green (26 unit + 9 integration).
+- [x] TypeScript clean across all edited files.
+- [x] Lints clean across all edited frontend + backend files.
+- [x] No destructive deletions; legacy API Revenue Guard subsystems preserved (`/v1/services/...`, `/v1/ingest/...`, `/v1/incidents/...` all still mounted).
+- [x] This handoff updated with the EngineerCalc Week-3 state + Week-4 next-task.
 
 ═══════════════════════════════════════════════════════════════════════
                         PRIOR CONTEXT

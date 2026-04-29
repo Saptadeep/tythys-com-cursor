@@ -89,7 +89,7 @@ export const SERVICES: Service[] = [
     accentColor: '#8b7fff',
     price:       'Contact for pricing',
     href:        '/beam-calculator',
-    apiEndpoint: '/api/services/beam-calc',
+    apiEndpoint: '/api/beam-calc/solve',
     tags:        ['structural', 'civil', 'mechanical'],
     mathDomain:  ['Calculus', 'Physics'],
     pillars:     ['modeling', 'scientific-thinking', 'problem-solving'],

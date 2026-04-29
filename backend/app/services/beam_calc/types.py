@@ -126,7 +126,17 @@ class CurveSamples(BaseModel):
 
 
 class BeamSolveResponse(BaseModel):
-    """All standard outputs from a single solve."""
+    """All standard outputs from a single solve.
+
+    Field names always end in their SI unit (``_n``, ``_m``, ``_pa``, …)
+    because the solver itself is SI-only. The ``units`` discriminator below
+    tells consumers how to *interpret* those numbers: when the API edge has
+    converted the response to imperial, the same field still says ``_m`` —
+    but the numeric value is in the corresponding imperial unit
+    (inches for deflection, feet for positions, lbf for forces,
+    lbf·ft for moments, psi for stress, lbf·in² for EI). The route is the
+    single place that performs the conversion; the core stays pure SI.
+    """
 
     # Reactions (positive = upward)
     reaction_left_n: float
@@ -153,3 +163,8 @@ class BeamSolveResponse(BaseModel):
 
     # The Roark reference cell this solver claims to match — UI surfaces it.
     roark_reference: str
+
+    # Which unit system the numeric fields above are expressed in.
+    # The core solver always returns "si"; the route flips this to
+    # "imperial" after converting on the API edge.
+    units: Literal["si", "imperial"] = "si"

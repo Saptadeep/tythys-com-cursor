@@ -7,3 +7,5 @@ alembic==1.15.2
 psycopg2-binary==2.9.10
 pytest==8.3.5
 pytest-asyncio==0.25.3
+httpx==0.28.1
+
