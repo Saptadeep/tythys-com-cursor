@@ -1,9 +1,9 @@
 # SESSION HANDOFF
 
-Last updated: 2026-04-30 (EngineerCalc Week 5 UI pass — section presets + PDF export + inline validation + Vitest smoke gate)
+Last updated: 2026-04-30 (EngineerCalc Week 5 complete + Vercel/OCI wiring check + launch-readiness gate)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: `4ec3238  Math-physics-chem-focus-1st-pass` (Week-3 + Week-4 changes pending commit)
+Latest commit on `main`: `3af08a2  Complete EngineerCalc Week 5 polish: section presets, PDF export, inline validation, and Vitest smoke gate`
 
 > Read top-to-bottom. The first half captures the **current state** of the
 > project. The second half (under "Prior Context") preserves the earlier
@@ -122,6 +122,7 @@ Frontend smoke gate (added 2026-04-30, replaces the original Playwright scaffold
 - `frontend/vitest.config.mts` — **new**. jsdom env, `@/` and `@components/` aliases mirroring `tsconfig.json`, `pool: 'threads'` (forks pool hung on Windows under Vitest 4), `setupFiles: ['./tests/setup.ts']`, `include: ['tests/**/*.test.{ts,tsx}']`.
 - `frontend/tests/setup.ts` — **new**. Wires `@testing-library/jest-dom/vitest` matchers and runs `cleanup()` after each test.
 - `frontend/tests/beam-calculator.test.tsx` — **new**. Mocks the heavy collaborators (`ParticleCanvas`, `TopBar`, `Navbar`, `Footer`, `HUD`) and `recharts.ResponsiveContainer` so jsdom only renders the form and results panel; stubs global `fetch` to return the canonical centre-load payload; clicks `Solve` with default field values; asserts `Max deflection:` row contains `0.02743902…`. Also pins the request shape: `POST /api/beam-calc/solve?units=si` with `length_m=6`, `youngs_modulus_pa=2e11`, `load = { kind: 'point_load_centre', magnitude_n: 10000 }`.
+- `frontend/src/app/api/beam-calc/solve/route.ts` — backend base URL normalization for deployment parity: if `BACKEND_BASE_URL` already ends with `/v1` (Vercel + OCI common case), do not prepend another `/v1`; if omitted, append `/v1` automatically. This aligns `beam-calc` with the shared backend helper contract and avoids accidental `/v1/v1/...` in production.
 - `frontend/playwright.config.ts` — **deleted**.
 - `frontend/tests/beam-calculator.spec.ts` — **deleted**.
 
@@ -138,7 +139,7 @@ cd /d C:\tythys-com-cursor\backend
 .venv\Scripts\python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v
 ```
 
-Last run (this session): **35 / 35 passed** in 1.03 s.
+Last run (this session): **35 / 35 passed** in 1.09 s.
 - 26 / 26 from the original `tests/test_beam_calc.py` gate (unchanged).
 - 9 / 9 from the new `tests/test_beam_calc_api.py` integration suite.
 
@@ -157,6 +158,8 @@ import time so the EngineerCalc HTTP gate runs offline.
   - `frontend/src/components/sections/Products.tsx`
   - `frontend/src/config/services.ts`
 - Python: lints clean across `app/api/routes/beam_calc.py`, `app/main.py`, `app/services/beam_calc/types.py`, and `tests/test_beam_calc_api.py`. No warnings beyond the project-wide `pytest-asyncio` deprecation noise.
+- Frontend smoke gate: `npm test` (Vitest) passes (`1 passed`).
+- Frontend production build: `npm run build` passes on Next.js 16.2.4; route manifest includes `/beam-calculator` and `/api/beam-calc/solve`.
 - Project note: `frontend/npm run lint` currently fails due to repository ESLint v9 flat-config migration (`eslint.config.*` missing). This is a repo-level configuration issue, not introduced by EngineerCalc wiring.
 
 ---
@@ -169,8 +172,8 @@ import time so the EngineerCalc HTTP gate runs offline.
 | 2 | **DONE** (compressed into Week 1) | Implement the four load cases until every Roark test is green. (Achieved on first compile because formulas were derived against the docs.) |
 | 3 | **DONE** (this session, 2026-04-29) | `POST /v1/beam-calc/solve` with edge-side SI ↔ Imperial conversion; 9 `TestClient` integration tests pinned to the same Roark reference values as the kernel tests; Next.js proxy at `/api/beam-calc/solve`; learnings doc `02-learnings.md`. |
 | 4 | **DONE** (this session, 2026-04-29) | `/beam-calculator` page added and wired end-to-end to `/api/beam-calc/solve`, with SI/Imperial toggle and three live charts (deflection/moment/shear). |
-| 5 | **NEXT** | Section library (rectangle, circle, W-shape from a small AISC JSON), PDF report export, error/edge-case polish. |
-| 6 |  | Soft launch: pricing page, freemium gate, ≥ 5 user interviews, capture feedback loop. |
+| 5 | **DONE** (2026-04-30) | Section library (`custom`/`rectangle`/`circle`/starter `w_shape`), deterministic PDF export, inline 422 field validation, Vitest component smoke gate, and backend-base normalization for Vercel/OCI parity. |
+| 6 | **NEXT** | Soft launch: pricing page, freemium gate, ≥ 5 user interviews, capture feedback loop. |
 
 Read `docs/products/engineer-calc/00-spec.md` for the full week-by-week
 table including monetisation tiers and success gates.
@@ -179,35 +182,26 @@ table including monetisation tiers and success gates.
 
 ## 4. Next Task (resume exactly from here)
 
-**Week 5 — section library + report export + polish.**
+**Week 6 — soft launch preparation and deployment hardening.**
 
 Concretely:
 
-1. **Section property library (frontend + backend contract)**
-   - Add predefined section selectors (rectangle, circle, starter W-shape set) on the `/beam-calculator` page while preserving current custom `I` + `c` entry.
-   - Keep backend core SI-only; any additional section convenience logic stays at the UI edge.
+1. **Soft-launch scope**
+   - Define launch envelope for EngineerCalc: free vs paid gating, pricing copy, and what remains publicly visible in Week 6.
+   - Keep positioning aligned to the four-pillar direction and build-to-learn narrative.
 
-2. **PDF export (first usable version)**
-   - Add export action on `/beam-calculator` that includes: inputs, key outputs, Roark reference, and the three charts.
-   - Prefer deterministic output over design polish for v1.
+2. **Deployment hardening (Vercel frontend + OCI backend)**
+   - Verify production env parity (`BACKEND_MODE`, `BACKEND_BASE_URL`, API key handling for ingest routes).
+   - Confirm `/api/beam-calc/solve` proxy reaches OCI backend using the normalized `/v1` base logic.
+   - Add a concise runbook for rollback checks (`/health`, `/ready`, beam solve smoke call).
 
-3. **Validation and UX polish**
-   - Inline per-field validation rendering using backend 422 payload shape (already forwarded by proxy).
-   - Better unit-aware placeholders/steps and clearer empty/error states.
+3. **Launch validation**
+   - Keep backend gate mandatory (`35 passed`) and frontend Vitest gate green (`1 passed`).
+   - Add one post-deploy smoke sequence against live Vercel + OCI endpoints before announcing availability.
 
-4. **Status honesty + catalog**
-   - Confirm `beam-calc` card remains honest:
-     - `apiEndpoint` points to `/api/beam-calc/solve` (done)
-     - badge/link behavior now follows normal rules in `Products.tsx` (done)
-   - Decide whether to keep or change `status: 'live'` in `services.ts` based on Week-5 polish completeness.
-
-5. **Tests**
-   - Frontend smoke gate (component test, Vitest + RTL) is in place and green: submits the canonical centre-load case via stubbed `fetch` and asserts the rendered `δ_max ≈ 0.02743902…`.
-   - Keep backend gate mandatory (`35 passed`).
-
-6. **Docs**
-   - Add `docs/products/engineer-calc/03-ui-design.md` (screens + chart conventions + SI/imperial suffix table).
-   - Update this handoff again at session end.
+4. **Feedback loop**
+   - Prepare interview script + instrumentation checklist for first 5 users.
+   - Capture top friction points: units workflow, section presets, and report export clarity.
 
 ---
 
@@ -327,6 +321,7 @@ taskkill /F /IM python.exe
 - **Validation first**: every numeric output has a textbook reference test. Tests and an independent verifier script are both green before a product flips to "live".
 - **CMD-first** for local development.
 - Site is **`tythys.com`**; the workspace stays at `c:\tythys-com-cursor`.
+- **Deployment baseline**: frontend is already connected/running on **Vercel**; backend deploy target is **OCI**; UI calls backend via Next.js API routes/proxy.
 - Earlier API Revenue Guard work is **preserved**, not deleted. It remains part of the Tythys catalogue (`/gateway-observability`).
 
 ---
@@ -342,25 +337,28 @@ Read first:
 - c:\tythys-com-cursor\docs\products\engineer-calc\00-spec.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\01-physics.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\02-learnings.md
-Then continue from "Next Task" exactly (Week 5: section library + PDF export + polish for /beam-calculator).
+Then continue from "Next Task" exactly (Week 6: soft launch prep + Vercel/OCI deployment hardening).
 Local CMD instructions only.
 Keep all files maintained — including the preserved API Revenue Guard subsystems.
 Preserve the four-pillar UI direction and the build-to-learn methodology.
 Run `python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v` from C:\tythys-com-cursor\backend before any new work — it must report 35 passed.
 Also run `npm test` from C:\tythys-com-cursor\frontend — Vitest must report 1 passed (1).
+Then run `npm run build` from C:\tythys-com-cursor\frontend — production build must be green before deployment steps.
 ```
 
 ---
 
 ## 9. Session-close checklist (for the human, before exit)
 
-- [ ] Commit Week-3 + Week-4 + Week-5 changes (this session is currently uncommitted; latest pushed commit is still `Math-physics-chem-focus-1st-pass`).
+- [x] Commit Week-3 + Week-4 + Week-5 changes created: `3af08a2  Complete EngineerCalc Week 5 polish: section presets, PDF export, inline validation, and Vitest smoke gate`.
 - [x] All 35 EngineerCalc backend tests green (26 unit + 9 integration).
 - [x] Frontend Vitest smoke gate green (1 passed): `cd /d C:\tythys-com-cursor\frontend && npm test`.
+- [x] Frontend production build green: `cd /d C:\tythys-com-cursor\frontend && npm run build`.
 - [x] TypeScript clean across all edited files.
 - [x] Lints clean across all edited frontend + backend files.
+- [ ] Working tree has local leftovers to triage before next commit: `frontend/next-env.d.ts` (generated) and untracked `notes-how-to-run-on-oci.md` (user notes draft). Keep/delete by explicit choice; do not auto-remove.
 - [x] No destructive deletions of product code; legacy API Revenue Guard subsystems preserved (`/v1/services/...`, `/v1/ingest/...`, `/v1/incidents/...` all still mounted). Playwright tooling deleted by design — see §2.5.
-- [x] This handoff updated with EngineerCalc Week-5 polish + Vitest smoke gate.
+- [x] This handoff updated with EngineerCalc Week-5 completion + launch-readiness checks + Week-6 resume target.
 
 ═══════════════════════════════════════════════════════════════════════
                         PRIOR CONTEXT

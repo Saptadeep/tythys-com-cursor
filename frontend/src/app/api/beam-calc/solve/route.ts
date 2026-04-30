@@ -1,7 +1,10 @@
 // src/app/api/beam-calc/solve/route.ts
 // ─────────────────────────────────────────────────────────────
 //  Frontend proxy for the EngineerCalc backend solver.
-//  POST /api/beam-calc/solve  →  POST {BACKEND_BASE_URL}/v1/beam-calc/solve
+//  POST /api/beam-calc/solve  →  POST {BACKEND_BASE_URL}/beam-calc/solve
+//
+//  BACKEND_BASE_URL matches @/lib/backend: use API root WITH /v1 (e.g. https://host/v1).
+//  If omitted, trailing /v1 is appended for parity with backend/main.py prefixes.
 //
 //  Pass-through behaviour:
 //    - Forwards the JSON body verbatim.
@@ -13,7 +16,12 @@
 // ─────────────────────────────────────────────────────────────
 import { NextResponse } from 'next/server'
 
-const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL ?? 'http://localhost:8080'
+/** FastAPI routers are mounted under /v1 — same base as frontend/.env.example and @/lib/backend. */
+function backendV1Base(): string {
+  const raw = process.env.BACKEND_BASE_URL ?? 'http://localhost:8080'
+  const trimmed = raw.replace(/\/$/, '')
+  return trimmed.endsWith('/v1') ? trimmed : `${trimmed}/v1`
+}
 
 export async function POST(req: Request) {
   const url = new URL(req.url)
@@ -32,7 +40,7 @@ export async function POST(req: Request) {
 
   let res: Response
   try {
-    res = await fetch(`${BACKEND_BASE_URL}/v1/beam-calc/solve${qs}`, {
+    res = await fetch(`${backendV1Base()}/beam-calc/solve${qs}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
