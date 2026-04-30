@@ -1,6 +1,11 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { Analytics } from '@vercel/analytics/next'
+import { Providers } from '@/components/providers/Providers'
+import { SiteJsonLd } from '@/components/seo/JsonLd'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tythys.com'
 
 export const metadata: Metadata = {
   title:       { default: 'Tythys — Quantitative Reasoning, Modeling & Scientific Software', template: '%s | Tythys' },
@@ -17,14 +22,31 @@ export const metadata: Metadata = {
     'structural engineering',
     'edtech math',
   ],
-  authors:     [{ name: 'Tythys', url: 'https://tythys.com' }],
-  metadataBase: new URL('https://tythys.com'),
+  authors:     [{ name: 'Tythys', url: SITE_URL }],
+  creator:     'Tythys',
+  publisher:   'Tythys',
+  metadataBase: new URL(SITE_URL),
+  alternates:  { canonical: '/' },
+  applicationName: 'Tythys',
+  category:    'science',
+  formatDetection: { email: false, address: false, telephone: false },
   openGraph: {
     title:       'Tythys — Quantitative Reasoning, Modeling & Scientific Software',
     description: 'Hard problems, working tools. Built on quantitative reasoning, modeling, scientific thinking, and software.',
-    url:         'https://tythys.com',
+    url:         SITE_URL,
     siteName:    'Tythys',
+    locale:      'en_US',
     type:        'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tythys — Quantitative Reasoning, Modeling & Scientific Software',
+    description: 'Hard problems, working tools. Built on quantitative reasoning, modeling, scientific thinking, and software.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
 }
 
@@ -46,7 +68,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-bg text-[#dde4f0] font-body antialiased overflow-x-hidden">
-        {children}
+        <SiteJsonLd />
+        <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   )

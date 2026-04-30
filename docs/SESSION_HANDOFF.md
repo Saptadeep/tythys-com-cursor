@@ -1,9 +1,9 @@
 # SESSION HANDOFF
 
-Last updated: 2026-04-30 (EngineerCalc Week 6 started: pricing page + free-tier gate + soft-launch runbook)
+Last updated: 2026-04-30 (Week 6 security/auth/SEO/admin hardening complete; deployment rollout + smoke validation next)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: `3af08a2  Complete EngineerCalc Week 5 polish: section presets, PDF export, inline validation, and Vitest smoke gate`
+Latest commit on `main`: `2c84a41  EngineerCalc Week 6 kickoff: pricing page, free-tier banner+watermark, soft-launch runbook, OCI runbook switched to Vercel FE + OCI BE`
 
 > Read top-to-bottom. The first half captures the **current state** of the
 > project. The second half (under "Prior Context") preserves the earlier
@@ -170,6 +170,36 @@ Files added or edited:
 - `frontend/src/app/beam-calculator/page.tsx` — added soft-launch free-tier banner and PDF export watermark copy (`EngineerCalc Free Tier`) with upgrade pointer to `/pricing`.
 - `docs/products/engineer-calc/04-week6-soft-launch.md` — **new** runbook: launch envelope, env parity checklist for Vercel/OCI, post-deploy smoke sequence, rollback checks, and first-5-user interview script.
 
+### 2.8  Security/Auth/SEO/Admin hardening pass (this session, 2026-04-30)
+
+Implemented:
+- Google auth via Auth.js v5 with JWT session strategy and admin allowlist (`ADMIN_EMAILS`) in `frontend/src/lib/auth.ts`.
+- Next.js auth route at `frontend/src/app/api/auth/[...nextauth]/route.ts`.
+- Next 16 edge guard migrated to `frontend/src/proxy.ts` (replaces deprecated `middleware.ts`) protecting `/admin/*`.
+- New canonical sign-in page at `frontend/src/app/auth/signin/page.tsx`; legacy `/auth/login`, `/auth/signup`, `/auth/forgot-password` now redirect to `/auth/signin` and are `noindex`.
+- Admin-only analytics page at `frontend/src/app/admin/analytics/page.tsx` with server-side gate in `frontend/src/app/admin/layout.tsx`.
+- Site-wide analytics via `@vercel/analytics` in `frontend/src/app/layout.tsx`.
+- SEO file conventions added:
+  - `frontend/src/app/robots.ts`
+  - `frontend/src/app/sitemap.ts`
+  - `frontend/src/app/manifest.ts`
+  - `frontend/src/app/opengraph-image.tsx`
+  - `frontend/src/app/twitter-image.tsx`
+  - `frontend/src/components/seo/JsonLd.tsx` (Organization + WebSite + SoftwareApplication schema)
+- Per-route metadata layouts added for:
+  - `/beam-calculator`
+  - `/pricing`
+  - `/gateway-observability`
+  - `/auth/*` (`noindex`)
+  - `/admin/*` (`noindex`)
+- Contact form bot protection + route hardening:
+  - Cloudflare Turnstile widget in `frontend/src/components/sections/Contact.tsx`
+  - honeypot field + submit gating
+  - zod validation + Turnstile verification + origin checks + per-IP rate limiting in `frontend/src/app/api/contact/route.ts`
+- Security utility layer added in `frontend/src/lib/security/*` (`rateLimit`, `verifyTurnstile`, `validate`, `csrf`, `withAuth`).
+- Security headers/CSP/CORS allowlist in `frontend/next.config.js` (removed wildcard CORS).
+- Added API hardening tests in `frontend/tests/contact-api.test.ts`.
+
 ---
 
 ## 3. The 6-week EngineerCalc ship plan (where we are)
@@ -181,7 +211,7 @@ Files added or edited:
 | 3 | **DONE** (this session, 2026-04-29) | `POST /v1/beam-calc/solve` with edge-side SI ↔ Imperial conversion; 9 `TestClient` integration tests pinned to the same Roark reference values as the kernel tests; Next.js proxy at `/api/beam-calc/solve`; learnings doc `02-learnings.md`. |
 | 4 | **DONE** (this session, 2026-04-29) | `/beam-calculator` page added and wired end-to-end to `/api/beam-calc/solve`, with SI/Imperial toggle and three live charts (deflection/moment/shear). |
 | 5 | **DONE** (2026-04-30) | Section library (`custom`/`rectangle`/`circle`/starter `w_shape`), deterministic PDF export, inline 422 field validation, Vitest component smoke gate, and backend-base normalization for Vercel/OCI parity. |
-| 6 | **IN PROGRESS** (started 2026-04-30) | Soft launch: pricing page + freemium gate landed; deployment smoke/rollback runbook + interview script drafted; complete live post-deploy smoke + run first 5 interviews. |
+| 6 | **IN PROGRESS** (started 2026-04-30) | Soft launch + hardening landed (pricing, free-tier gate, auth, admin analytics, SEO files, contact bot prevention, security headers). Remaining: production env rollout + OAuth/Turnstile verification + live smoke + first 5 interviews. |
 
 Read `docs/products/engineer-calc/00-spec.md` for the full week-by-week
 table including monetisation tiers and success gates.
@@ -190,26 +220,39 @@ table including monetisation tiers and success gates.
 
 ## 4. Next Task (resume exactly from here)
 
-**Week 6 — soft launch preparation and deployment hardening.**
+**Week 6 — production rollout validation after hardening pass.**
 
 Concretely:
 
-1. **Soft-launch scope**
-   - Define launch envelope for EngineerCalc: free vs paid gating, pricing copy, and what remains publicly visible in Week 6.
-   - Keep positioning aligned to the four-pillar direction and build-to-learn narrative.
+1. **Vercel environment rollout (required)**
+   - Set and verify:
+     - `AUTH_SECRET`
+     - `AUTH_GOOGLE_ID`
+     - `AUTH_GOOGLE_SECRET`
+     - `AUTH_TRUST_HOST=true`
+     - `NEXTAUTH_URL=https://tythys.com`
+     - `ADMIN_EMAILS=sd@tythys.com`
+     - `NEXT_PUBLIC_SITE_URL=https://tythys.com`
+     - `ALLOWED_ORIGINS=https://tythys.com,https://www.tythys.com`
+     - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+     - `TURNSTILE_SECRET_KEY`
+     - `BACKEND_BASE_URL=http://192.18.156.255:8000` (or whichever OCI port is live)
 
-2. **Deployment hardening (Vercel frontend + OCI backend)**
-   - Verify production env parity (`BACKEND_MODE`, `BACKEND_BASE_URL`, API key handling for ingest routes).
-   - Confirm `/api/beam-calc/solve` proxy reaches OCI backend using the normalized `/v1` base logic.
-   - Add a concise runbook for rollback checks (`/health`, `/ready`, beam solve smoke call).
+2. **Authentication and admin gate validation**
+   - `https://tythys.com/auth/signin` Google flow succeeds.
+   - `sd@tythys.com` can access `/admin/analytics`.
+   - non-allowlisted Google account is blocked from `/admin/*`.
 
-3. **Launch validation**
-   - Keep backend gate mandatory (`35 passed`) and frontend Vitest gate green (`1 passed`).
-   - Add one post-deploy smoke sequence against live Vercel + OCI endpoints before announcing availability.
+3. **Contact anti-bot validation**
+   - contact submit fails without Turnstile completion.
+   - contact submit succeeds with valid Turnstile token.
+   - honeypot payload is silently discarded server-side.
 
-4. **Feedback loop**
-   - Prepare interview script + instrumentation checklist for first 5 users.
-   - Capture top friction points: units workflow, section presets, and report export clarity.
+4. **Production smoke and launch confidence**
+   - backend still healthy on OCI (`/health`, `/ready`, beam solve route).
+   - beam calculator Solve flow still green in production.
+   - verify `robots.txt`, `sitemap.xml`, OG/Twitter image routes.
+   - run first 5 user interviews and capture friction points (units, section presets, export clarity).
 
 ---
 
@@ -250,9 +293,9 @@ cd /d C:\tythys-com-cursor\frontend
 npm test
 ```
 
-Expected output: `Test Files  1 passed (1)` / `Tests  1 passed (1)`. The
-test stubs `fetch`, mocks the layout/HUD/canvas/recharts collaborators,
-and pins `δ_max ≈ 0.02743902` from the canonical centre-load case.
+Expected output: `Test Files  2 passed (2)` / `Tests  4 passed (4)`.
+- `tests/beam-calculator.test.tsx` keeps the canonical centre-load smoke assertion.
+- `tests/contact-api.test.ts` covers origin-reject, missing-turnstile reject, and honeypot discard behavior.
 
 NOTE: Playwright was intentionally removed on 2026-04-30 — its local
 Chromium download hung on this Windows host. Do not reintroduce
@@ -345,12 +388,12 @@ Read first:
 - c:\tythys-com-cursor\docs\products\engineer-calc\00-spec.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\01-physics.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\02-learnings.md
-Then continue from "Next Task" exactly (Week 6: soft launch prep + Vercel/OCI deployment hardening).
+Then continue from "Next Task" exactly (Week 6: production env rollout + OAuth/Turnstile validation + live smoke + first-5-user feedback loop).
 Local CMD instructions only.
 Keep all files maintained — including the preserved API Revenue Guard subsystems.
 Preserve the four-pillar UI direction and the build-to-learn methodology.
 Run `python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v` from C:\tythys-com-cursor\backend before any new work — it must report 35 passed.
-Also run `npm test` from C:\tythys-com-cursor\frontend — Vitest must report 1 passed (1).
+Also run `npm test` from C:\tythys-com-cursor\frontend — Vitest must report 2 passed (2) and 4 passed (4).
 Then run `npm run build` from C:\tythys-com-cursor\frontend — production build must be green before deployment steps.
 ```
 
@@ -360,13 +403,13 @@ Then run `npm run build` from C:\tythys-com-cursor\frontend — production build
 
 - [x] Commit Week-3 + Week-4 + Week-5 changes created: `3af08a2  Complete EngineerCalc Week 5 polish: section presets, PDF export, inline validation, and Vitest smoke gate`.
 - [x] All 35 EngineerCalc backend tests green (26 unit + 9 integration).
-- [x] Frontend Vitest smoke gate green (1 passed): `cd /d C:\tythys-com-cursor\frontend && npm test`.
+- [x] Frontend Vitest gate green (`2 passed`, `4 tests`): `cd /d C:\tythys-com-cursor\frontend && npm test`.
 - [x] Frontend production build green: `cd /d C:\tythys-com-cursor\frontend && npm run build`.
 - [x] TypeScript clean across all edited files.
 - [x] Lints clean across all edited frontend + backend files.
 - [ ] Working tree has local leftovers to triage before next commit: `frontend/next-env.d.ts` (generated) and untracked `notes-how-to-run-on-oci.md` (user notes draft). Keep/delete by explicit choice; do not auto-remove.
 - [x] No destructive deletions of product code; legacy API Revenue Guard subsystems preserved (`/v1/services/...`, `/v1/ingest/...`, `/v1/incidents/...` all still mounted). Playwright tooling deleted by design — see §2.5.
-- [x] This handoff updated with EngineerCalc Week-5 completion + launch-readiness checks + Week-6 resume target.
+- [x] This handoff updated with Week-6 security/auth/SEO/admin hardening completion + deployment rollout checklist + resume target.
 
 ═══════════════════════════════════════════════════════════════════════
                         PRIOR CONTEXT

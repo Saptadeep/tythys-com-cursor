@@ -8,6 +8,7 @@ import { Menu, X, Zap }         from 'lucide-react'
 import { cn }                   from '@/lib/cn'
 import { SERVICES }             from '@/config/services'
 import { BrandGlyph }           from './BrandGlyph'
+import { NavUserMenu }          from './NavUserMenu'
 
 /* Map known sub-pages → contextual subline shown under the wordmark.
    Falls back to "Control Plane" on the marketing/landing route. */
@@ -89,12 +90,7 @@ export function Navbar() {
             ))}
 
             <li>
-              <Link
-                href="/auth/login"
-                className="text-sm font-normal tracking-[0.02em] text-dim transition-colors duration-200 hover:text-accent"
-              >
-                Login
-              </Link>
+              <NavUserMenu variant="desktop" />
             </li>
 
             {/* Live services badge — sits between nav links and CTA */}
@@ -175,7 +171,7 @@ export function Navbar() {
 
               {/* Nav links — compact, full-width tap targets */}
               <nav className="px-3 py-3">
-                {[...NAV_LINKS, { label: 'Login', href: '/auth/login' }, { label: 'Contact', href: '#contact' }].map((link, i) => (
+                {[...NAV_LINKS, { label: 'Contact', href: '#contact' }].map((link, i) => (
                   <motion.a
                     key={link.href}
                     href={link.href}
@@ -193,6 +189,9 @@ export function Navbar() {
                     </span>
                   </motion.a>
                 ))}
+                <div className="mt-1 border-t border-accent/10 pt-2">
+                  <NavUserMenu variant="mobile" />
+                </div>
               </nav>
 
               {/* Footer strip */}

@@ -146,7 +146,7 @@ python -m pytest tests/test_beam_calc.py tests/test_beam_calc_api.py -q
 Start backend:
 cd ~/tythys-com-cursor/backend
 . .venv/bin/activate
-uvicorn app.main:app --host 0.0.0.0 --port 8080
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 Do not run frontend not on OCI (frontend is on Vercel).
 Now open in browser:

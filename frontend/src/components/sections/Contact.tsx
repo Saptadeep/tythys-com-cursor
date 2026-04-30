@@ -3,9 +3,12 @@
 import { useEffect, useMemo, useRef, useState }  from 'react'
 import { motion, useInView } from 'motion/react'
 import { Send, CheckCircle, AlertCircle, Clock, MapPin, Zap, ArrowUp } from 'lucide-react'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { SERVICES }          from '@/config/services'
 import { cn }                from '@/lib/cn'
 import type { AppState }     from '@/types'
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''
 
 type FormState = 'idle' | 'sending' | 'sent' | 'error'
 
@@ -33,6 +36,8 @@ export function Contact() {
   const [form,  setForm]  = useState({
     firstName: '', lastName: '', email: '', interest: '', message: '',
   })
+  const [honeypot, setHoneypot] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string>('')
 
   const fullName = useMemo(() => {
     const n = `${form.firstName} ${form.lastName}`.trim()
@@ -67,12 +72,23 @@ export function Contact() {
     e.preventDefault()
     if (state === 'sending' || state === 'sent') return
     setErrorMsg('')
+
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErrorMsg('Please complete the security check before sending.')
+      setState('error')
+      return
+    }
+
     setState('sending')
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          website: honeypot,
+          turnstileToken,
+        }),
       })
 
       const json = (await res.json().catch(() => null)) as any
@@ -279,10 +295,38 @@ export function Contact() {
                   />
                 </div>
 
+                {/* Honeypot — hidden from users; bots will fill it. */}
+                <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+                  <label>
+                    Website
+                    <input
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                    />
+                  </label>
+                </div>
+
+                {/* Cloudflare Turnstile — invisible-to-near-invisible bot check. */}
+                {TURNSTILE_SITE_KEY ? (
+                  <div className="mt-1">
+                    <Turnstile
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onSuccess={(token) => setTurnstileToken(token)}
+                      onExpire={() => setTurnstileToken('')}
+                      onError={() => setTurnstileToken('')}
+                      options={{ theme: 'dark', size: 'flexible' }}
+                    />
+                  </div>
+                ) : null}
+
                 {/* Submit */}
                 <button
                   type="submit"
-                  disabled={state === 'sending'}
+                  disabled={state === 'sending' || (Boolean(TURNSTILE_SITE_KEY) && !turnstileToken)}
                   className={cn(
                     'mt-1 inline-flex min-h-[48px] items-center justify-center gap-2.5 self-start',
                     'rounded-lg border px-6 py-3 text-sm font-medium',
