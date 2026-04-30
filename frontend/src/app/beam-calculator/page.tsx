@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { ParticleCanvas } from '@/components/ui/ParticleCanvas'
 import { HUD } from '@/components/hud/HUD'
+import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts'
 
 type Units = 'si' | 'imperial'
@@ -49,6 +50,7 @@ const W_SHAPE_PRESETS: WShapePreset[] = [
 const M_PER_FT = 0.3048
 const M_PER_IN = 0.0254
 const M4_PER_IN4 = M_PER_IN ** 4
+const FREE_PLAN_WATERMARK = 'EngineerCalc Free Tier'
 
 function mapFieldName(path: string): string {
   const key = path.replace(/^body\./, '')
@@ -292,6 +294,15 @@ export default function BeamCalculatorPage() {
             .card { border: 1px solid #ccd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
             .label { font-weight: bold; }
             svg { width: 100%; height: auto; max-height: 260px; }
+            .watermark {
+              margin-top: 18px;
+              padding-top: 10px;
+              border-top: 1px dashed #b7c3d8;
+              color: #5d6f8d;
+              font-size: 12px;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+            }
           </style>
         </head>
         <body>
@@ -326,6 +337,7 @@ export default function BeamCalculatorPage() {
             <div class="card"><h3>Bending Moment</h3>${getChartSvgMarkup('chart-moment')}</div>
             <div class="card"><h3>Shear</h3>${getChartSvgMarkup('chart-shear')}</div>
           </div>
+          <p class="watermark">${FREE_PLAN_WATERMARK} · Upgrade on tythys.com/pricing for clean exports.</p>
         </body>
       </html>
     `
@@ -355,6 +367,10 @@ export default function BeamCalculatorPage() {
               Solve simply-supported beam cases against the validated backend kernel. Inputs and outputs
               can be interpreted in SI or imperial through the API edge conversion layer.
             </p>
+            <div className="mb-6 rounded-xl border border-accent-dim p-4 text-sm text-dim" style={{ background: 'rgba(10,20,42,0.72)' }}>
+              Soft launch mode: Free tier exports include a watermark while Pro/API access opens through the waitlist.
+              <Link href="/pricing" className="ml-1 text-accent underline underline-offset-2">See pricing</Link>.
+            </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.95fr_1.05fr]">
               <form

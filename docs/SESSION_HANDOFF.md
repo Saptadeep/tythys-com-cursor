@@ -1,6 +1,6 @@
 # SESSION HANDOFF
 
-Last updated: 2026-04-30 (EngineerCalc Week 5 complete + Vercel/OCI wiring check + launch-readiness gate)
+Last updated: 2026-04-30 (EngineerCalc Week 6 started: pricing page + free-tier gate + soft-launch runbook)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
 Latest commit on `main`: `3af08a2  Complete EngineerCalc Week 5 polish: section presets, PDF export, inline validation, and Vitest smoke gate`
@@ -139,7 +139,7 @@ cd /d C:\tythys-com-cursor\backend
 .venv\Scripts\python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v
 ```
 
-Last run (this session): **35 / 35 passed** in 1.09 s.
+Last run (this session): **35 / 35 passed** in 1.15 s.
 - 26 / 26 from the original `tests/test_beam_calc.py` gate (unchanged).
 - 9 / 9 from the new `tests/test_beam_calc_api.py` integration suite.
 
@@ -162,6 +162,14 @@ import time so the EngineerCalc HTTP gate runs offline.
 - Frontend production build: `npm run build` passes on Next.js 16.2.4; route manifest includes `/beam-calculator` and `/api/beam-calc/solve`.
 - Project note: `frontend/npm run lint` currently fails due to repository ESLint v9 flat-config migration (`eslint.config.*` missing). This is a repo-level configuration issue, not introduced by EngineerCalc wiring.
 
+### 2.7  EngineerCalc Week 6 kickoff (this session, 2026-04-30)
+
+Files added or edited:
+- `frontend/src/app/pricing/page.tsx` — **new** pricing page for soft launch with Free / Pro / API tiers, week-6 copy, and waitlist CTA.
+- `frontend/src/components/layout/Navbar.tsx` — added `Pricing` nav entry.
+- `frontend/src/app/beam-calculator/page.tsx` — added soft-launch free-tier banner and PDF export watermark copy (`EngineerCalc Free Tier`) with upgrade pointer to `/pricing`.
+- `docs/products/engineer-calc/04-week6-soft-launch.md` — **new** runbook: launch envelope, env parity checklist for Vercel/OCI, post-deploy smoke sequence, rollback checks, and first-5-user interview script.
+
 ---
 
 ## 3. The 6-week EngineerCalc ship plan (where we are)
@@ -173,7 +181,7 @@ import time so the EngineerCalc HTTP gate runs offline.
 | 3 | **DONE** (this session, 2026-04-29) | `POST /v1/beam-calc/solve` with edge-side SI ↔ Imperial conversion; 9 `TestClient` integration tests pinned to the same Roark reference values as the kernel tests; Next.js proxy at `/api/beam-calc/solve`; learnings doc `02-learnings.md`. |
 | 4 | **DONE** (this session, 2026-04-29) | `/beam-calculator` page added and wired end-to-end to `/api/beam-calc/solve`, with SI/Imperial toggle and three live charts (deflection/moment/shear). |
 | 5 | **DONE** (2026-04-30) | Section library (`custom`/`rectangle`/`circle`/starter `w_shape`), deterministic PDF export, inline 422 field validation, Vitest component smoke gate, and backend-base normalization for Vercel/OCI parity. |
-| 6 | **NEXT** | Soft launch: pricing page, freemium gate, ≥ 5 user interviews, capture feedback loop. |
+| 6 | **IN PROGRESS** (started 2026-04-30) | Soft launch: pricing page + freemium gate landed; deployment smoke/rollback runbook + interview script drafted; complete live post-deploy smoke + run first 5 interviews. |
 
 Read `docs/products/engineer-calc/00-spec.md` for the full week-by-week
 table including monetisation tiers and success gates.

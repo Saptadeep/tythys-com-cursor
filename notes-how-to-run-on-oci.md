@@ -60,14 +60,13 @@ frontend/src/app/beam-calculator/page.tsx
 frontend/src/app/api/beam-calc/solve/route.ts
 backend/app/api/routes/beam_calc.py
 backend/app/services/beam_calc/solve.py
-For the OCI demo, the easiest deployment is both frontend and backend on the same VM:
+For production-style deployment, run frontend on Vercel and backend on OCI:
 
-Next.js frontend: http://<OCI_PUBLIC_IP>:3000
-FastAPI backend: http://127.0.0.1:8080
-That works because the Next.js API route defaults to:
+Next.js frontend: https://tythys.com/beam-calculator
+FastAPI backend: http://192.18.156.255:8080
+Set Vercel environment to target OCI backend:
 
-BACKEND_BASE_URL=http://localhost:8080
-So do not set BACKEND_BASE_URL unless needed.
+BACKEND_BASE_URL=http://192.18.156.255:8080
 
 3. Local Pre-Push Checks
 Run from Windows CMD:
@@ -101,66 +100,64 @@ git add docs\SESSION_HANDOFF.md ^
 git rm frontend\playwright.config.ts frontend\tests\beam-calculator.spec.ts
 git commit -m "Complete EngineerCalc Week 5 polish: section presets, PDF export, inline validation, and Vitest smoke gate" -m "Playwright removed due to local Windows hangs; replaced with Vitest + RTL component smoke test." -m "Adds deterministic canonical centre-load smoke assertion (~0.02743902) and updates SESSION_HANDOFF with the new CMD test flow."
 git push origin HEAD
+
+
+# OCI Cloud Deployment Steps
 4. OCI Cloud Deployment Steps
+
 From Windows CMD, SSH into your OCI Ubuntu VM:
+cd c:\tythys-com\back_end
+ssh -i ssh-key-2026-04-14.key ubuntu@192.18.156.255
 
-ssh ubuntu@<OCI_PUBLIC_IP>
 On the OCI VM:
-
 sudo apt update
 sudo apt install -y git curl python3.12 python3.12-venv python3-pip nginx
-Install Node 20+:
 
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs
-node -v
-npm -v
 Clone or update the repo:
 
 cd ~
-git clone <YOUR_GIT_REPO_URL> tythys-com-cursor
+git clone https://github.com/Saptadeep/tythys-com-cursor tythys-com-cursor
 cd ~/tythys-com-cursor
-If already cloned:
 
+If already cloned:
 cd ~/tythys-com-cursor
 git pull
-Backend setup:
 
+Backend setup:
 cd ~/tythys-com-cursor/backend
 python3.12 -m venv .venv
+python3.10 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 cp .env.local.quick.example .env
-Run backend test gate:
 
+Run backend test gate:
 . .venv/bin/activate
 python -m pytest tests/test_beam_calc.py tests/test_beam_calc_api.py -q
-Start backend:
 
+For fixing No module named 'httpx' error:
+cd ~/tythys-com-cursor/backend
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pytest tests/test_beam_calc.py tests/test_beam_calc_api.py -q
+
+
+Start backend:
 cd ~/tythys-com-cursor/backend
 . .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8080
-Open a second SSH session, then setup frontend:
 
-cd ~/tythys-com-cursor/frontend
-npm install
-npm test
-npm run build
-Start frontend:
-
-cd ~/tythys-com-cursor/frontend
-npm run dev -- --hostname 0.0.0.0 --port 3000
+Do not run frontend not on OCI (frontend is on Vercel).
 Now open in browser:
-
-http://<OCI_PUBLIC_IP>:3000/beam-calculator
+https://tythys.com/beam-calculator
 For a quick demo, OCI Security List / Network Security Group must allow inbound:
 
 TCP 22    SSH
-TCP 3000  Frontend demo
 TCP 8080  Optional backend direct testing
 Backend direct smoke from your Windows CMD:
 
-curl -X POST http://<OCI_PUBLIC_IP>:8080/v1/beam-calc/solve ^
+curl -X POST http://192.18.156.255:8080/v1/beam-calc/solve ^
   -H "Content-Type: application/json" ^
   -d "{\"length_m\":6.0,\"material\":{\"name\":\"Steel A36\",\"youngs_modulus_pa\":200e9},\"section\":{\"shape\":\"custom\",\"second_moment_m4\":8.2e-6,\"label\":\"Test\"},\"load\":{\"kind\":\"point_load_centre\",\"magnitude_n\":10000.0},\"sample_points\":51}"
 Expected response includes:
@@ -168,5 +165,4 @@ Expected response includes:
 0.02743902439024390
 For the live demo, use only:
 
-
-http://<OCI_PUBLIC_IP>:3000/beam-calculator
+https://tythys.com/beam-calculator

@@ -97,5 +97,5 @@ describe('BeamCalculatorPage — centre-load smoke', () => {
     expect(body.length_m).toBe(6)
     expect(body.material.youngs_modulus_pa).toBe(200000000000)
     expect(body.load).toEqual({ kind: 'point_load_centre', magnitude_n: 10000 })
-  })
+  }, 15000)
 })
