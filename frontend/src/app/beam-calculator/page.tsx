@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { TopBar } from '@/components/layout/Topbar'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
@@ -31,6 +31,40 @@ type SolverResponse = {
 
 type ApiOk = { ok: true; data: SolverResponse }
 type ApiErr = { ok: false; error?: string; detail?: unknown }
+type SectionKind = 'custom' | 'rectangle' | 'circle' | 'w_shape'
+
+type WShapePreset = {
+  id: string
+  label: string
+  inertia_in4: number
+  c_in: number
+}
+
+const W_SHAPE_PRESETS: WShapePreset[] = [
+  { id: 'w8x10', label: 'W8x10', inertia_in4: 62.7, c_in: 4.06 },
+  { id: 'w10x22', label: 'W10x22', inertia_in4: 167, c_in: 5.04 },
+  { id: 'w12x26', label: 'W12x26', inertia_in4: 204, c_in: 6.03 },
+]
+
+const M_PER_FT = 0.3048
+const M_PER_IN = 0.0254
+const M4_PER_IN4 = M_PER_IN ** 4
+
+function mapFieldName(path: string): string {
+  const key = path.replace(/^body\./, '')
+  const mapping: Record<string, string> = {
+    length_m: 'Span',
+    sample_points: 'Sample points',
+    'material.youngs_modulus_pa': "Young's E",
+    'section.second_moment_m4': 'Second moment I',
+    'section.extreme_fibre_distance_m': 'Extreme fibre c',
+    'load.magnitude_n': 'Point magnitude',
+    'load.position_m': 'Point position',
+    'load.intensity_n_per_m': 'UDL intensity',
+    'load.moment_nm': 'Applied moment',
+  }
+  return mapping[key] ?? key
+}
 
 function unitLabel(units: Units) {
   if (units === 'imperial') {
@@ -70,7 +104,7 @@ export default function BeamCalculatorPage() {
   const [loadKind, setLoadKind] = useState<LoadKind>('point_load_centre')
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
-  const [fieldError, setFieldError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [resp, setResp] = useState<SolverResponse | null>(null)
 
   const u = unitLabel(units)
@@ -80,6 +114,11 @@ export default function BeamCalculatorPage() {
   const [i, setI] = useState('0.0000082')
   const [c, setC] = useState('0.075')
   const [samplePoints, setSamplePoints] = useState('201')
+  const [sectionKind, setSectionKind] = useState<SectionKind>('custom')
+  const [rectWidth, setRectWidth] = useState('0.1')
+  const [rectHeight, setRectHeight] = useState('0.15')
+  const [circleDiameter, setCircleDiameter] = useState('0.12')
+  const [wShapeId, setWShapeId] = useState<string>(W_SHAPE_PRESETS[0]?.id ?? '')
 
   const [magnitude, setMagnitude] = useState('10000')
   const [position, setPosition] = useState('2')
@@ -99,20 +138,83 @@ export default function BeamCalculatorPage() {
     [resp],
   )
 
-  async function onSolve(evn: React.FormEvent) {
+  function sectionFromInputs() {
+    if (sectionKind === 'custom') {
+      return {
+        shape: 'custom' as const,
+        secondMoment: Number(i),
+        extremeFibre: c.trim() === '' ? null : Number(c),
+        label: 'Custom section',
+      }
+    }
+
+    if (sectionKind === 'rectangle') {
+      const b = Number(rectWidth)
+      const h = Number(rectHeight)
+      return {
+        shape: 'rectangle' as const,
+        secondMoment: (b * h ** 3) / 12,
+        extremeFibre: h / 2,
+        label: 'Rectangle',
+      }
+    }
+
+    if (sectionKind === 'circle') {
+      const d = Number(circleDiameter)
+      return {
+        shape: 'circle' as const,
+        secondMoment: (Math.PI * d ** 4) / 64,
+        extremeFibre: d / 2,
+        label: 'Circle',
+      }
+    }
+
+    const preset = W_SHAPE_PRESETS.find((x) => x.id === wShapeId) ?? W_SHAPE_PRESETS[0]
+    if (!preset) {
+      return {
+        shape: 'w_shape' as const,
+        secondMoment: Number.NaN,
+        extremeFibre: Number.NaN,
+        label: 'W-shape',
+      }
+    }
+
+    if (units === 'imperial') {
+      return {
+        shape: 'w_shape' as const,
+        secondMoment: preset.inertia_in4,
+        extremeFibre: preset.c_in,
+        label: preset.label,
+      }
+    }
+
+    return {
+      shape: 'w_shape' as const,
+      secondMoment: preset.inertia_in4 * M4_PER_IN4,
+      extremeFibre: preset.c_in * M_PER_IN,
+      label: preset.label,
+    }
+  }
+
+  function errorFor(path: string): string | null {
+    return fieldErrors[path] ?? null
+  }
+
+  async function onSolve(evn: FormEvent) {
     evn.preventDefault()
     setApiError(null)
-    setFieldError(null)
+    setFieldErrors({})
     setLoading(true)
 
+    const section = sectionFromInputs()
     const payload: any = {
       length_m: Number(length),
       material: { name: 'Custom', youngs_modulus_pa: Number(e) },
       section: {
-        shape: 'custom',
-        second_moment_m4: Number(i),
-        extreme_fibre_distance_m: c.trim() === '' ? null : Number(c),
-        label: 'Custom section',
+        shape: section.shape,
+        second_moment_m4: section.secondMoment,
+        extreme_fibre_distance_m: section.extremeFibre,
+        label: section.label,
       },
       sample_points: Number(samplePoints),
       load: null,
@@ -137,8 +239,19 @@ export default function BeamCalculatorPage() {
       const json = (await r.json()) as ApiOk | ApiErr
       if (!r.ok || !json.ok) {
         const maybeDetail = (json as ApiErr).detail as any
-        const firstErr = Array.isArray(maybeDetail?.detail) ? maybeDetail.detail[0] : null
-        setFieldError(firstErr?.msg ?? null)
+        const detailArray = Array.isArray(maybeDetail?.detail)
+          ? maybeDetail.detail
+          : Array.isArray(maybeDetail)
+            ? maybeDetail
+            : []
+        const mappedErrors: Record<string, string> = {}
+        for (const item of detailArray) {
+          const loc = Array.isArray(item?.loc) ? item.loc.join('.') : ''
+          if (loc && typeof item?.msg === 'string') {
+            mappedErrors[loc] = item.msg
+          }
+        }
+        setFieldErrors(mappedErrors)
         setApiError((json as ApiErr).error ?? `Request failed (${r.status})`)
         setResp(null)
         return
@@ -150,6 +263,78 @@ export default function BeamCalculatorPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function getChartSvgMarkup(chartId: string): string {
+    const root = document.getElementById(chartId)
+    const svg = root?.querySelector('svg')
+    if (!svg) return '<p style="color:#666">Chart unavailable.</p>'
+    return svg.outerHTML
+  }
+
+  function onExportPdf() {
+    if (!resp) return
+
+    const reportWindow = window.open('', '_blank', 'noopener,noreferrer,width=1100,height=900')
+    if (!reportWindow) return
+
+    const now = new Date().toISOString()
+    const html = `
+      <html>
+        <head>
+          <title>EngineerCalc Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 24px; color: #0a122a; }
+            h1 { margin-bottom: 4px; }
+            .meta { color: #555; margin-bottom: 20px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin-bottom: 20px; }
+            .section { margin: 20px 0; }
+            .card { border: 1px solid #ccd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+            .label { font-weight: bold; }
+            svg { width: 100%; height: auto; max-height: 260px; }
+          </style>
+        </head>
+        <body>
+          <h1>EngineerCalc Beam Report</h1>
+          <p class="meta">Generated: ${now} | Units: ${units.toUpperCase()} | Roark: ${resp.roark_reference}</p>
+          <div class="section">
+            <h2>Inputs</h2>
+            <div class="grid">
+              <div><span class="label">Span:</span> ${length} ${u.length}</div>
+              <div><span class="label">Young's E:</span> ${e} ${u.modulus}</div>
+              <div><span class="label">Section Mode:</span> ${sectionKind}</div>
+              <div><span class="label">Sample Points:</span> ${samplePoints}</div>
+              <div><span class="label">Load Case:</span> ${loadKind}</div>
+            </div>
+          </div>
+          <div class="section">
+            <h2>Key Outputs</h2>
+            <div class="grid">
+              <div><span class="label">R-left:</span> ${resp.reaction_left_n.toFixed(6)} ${u.force}</div>
+              <div><span class="label">R-right:</span> ${resp.reaction_right_n.toFixed(6)} ${u.force}</div>
+              <div><span class="label">Max Deflection:</span> ${resp.max_deflection_m.toFixed(10)} ${u.deflection}</div>
+              <div><span class="label">At x:</span> ${resp.max_deflection_at_m.toFixed(6)} ${u.length}</div>
+              <div><span class="label">Max Moment:</span> ${resp.max_bending_moment_nm.toFixed(6)} ${u.moment}</div>
+              <div><span class="label">Max Shear:</span> ${resp.max_shear_n.toFixed(6)} ${u.force}</div>
+              <div><span class="label">EI:</span> ${resp.flexural_rigidity_ei_nm2.toExponential(6)} ${u.ei}</div>
+              <div><span class="label">Stress:</span> ${resp.max_bending_stress_pa == null ? 'N/A' : `${resp.max_bending_stress_pa.toFixed(6)} ${u.stress}`}</div>
+            </div>
+          </div>
+          <div class="section">
+            <h2>Charts</h2>
+            <div class="card"><h3>Deflection</h3>${getChartSvgMarkup('chart-deflection')}</div>
+            <div class="card"><h3>Bending Moment</h3>${getChartSvgMarkup('chart-moment')}</div>
+            <div class="card"><h3>Shear</h3>${getChartSvgMarkup('chart-shear')}</div>
+          </div>
+        </body>
+      </html>
+    `
+
+    reportWindow.document.open()
+    reportWindow.document.write(html)
+    reportWindow.document.close()
+    reportWindow.focus()
+    reportWindow.print()
   }
 
   return (
@@ -183,12 +368,84 @@ export default function BeamCalculatorPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label className="text-sm text-dim">Span ({u.length})<input className="field-input mt-1" value={length} onChange={(e2) => setLength(e2.target.value)} /></label>
-                  <label className="text-sm text-dim">Young&apos;s E ({u.modulus})<input className="field-input mt-1" value={e} onChange={(e2) => setE(e2.target.value)} /></label>
-                  <label className="text-sm text-dim">Second moment I ({u.inertia})<input className="field-input mt-1" value={i} onChange={(e2) => setI(e2.target.value)} /></label>
-                  <label className="text-sm text-dim">Extreme fibre c ({u.c})<input className="field-input mt-1" value={c} onChange={(e2) => setC(e2.target.value)} /></label>
-                  <label className="text-sm text-dim">Sample points<input className="field-input mt-1" value={samplePoints} onChange={(e2) => setSamplePoints(e2.target.value)} /></label>
+                  <label className="text-sm text-dim">
+                    Span ({u.length})
+                    <input className="field-input mt-1" placeholder={units === 'si' ? 'e.g. 6.0' : 'e.g. 19.685'} step="any" value={length} onChange={(e2) => setLength(e2.target.value)} />
+                    {errorFor('body.length_m') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.length_m')}: {errorFor('body.length_m')}</span> : null}
+                  </label>
+                  <label className="text-sm text-dim">
+                    Young&apos;s E ({u.modulus})
+                    <input className="field-input mt-1" placeholder={units === 'si' ? 'e.g. 2e11' : 'e.g. 29000000'} step="any" value={e} onChange={(e2) => setE(e2.target.value)} />
+                    {errorFor('body.material.youngs_modulus_pa') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.material.youngs_modulus_pa')}: {errorFor('body.material.youngs_modulus_pa')}</span> : null}
+                  </label>
+                  <label className="text-sm text-dim">
+                    Section model
+                    <select className="field-input mt-1" value={sectionKind} onChange={(e2) => setSectionKind(e2.target.value as SectionKind)}>
+                      <option value="custom">Custom I + c</option>
+                      <option value="rectangle">Rectangle (b x h)</option>
+                      <option value="circle">Circle (solid dia)</option>
+                      <option value="w_shape">W-shape preset</option>
+                    </select>
+                  </label>
+                  <label className="text-sm text-dim">
+                    Sample points
+                    <input className="field-input mt-1" placeholder="11 to 2001" step="1" value={samplePoints} onChange={(e2) => setSamplePoints(e2.target.value)} />
+                    {errorFor('body.sample_points') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.sample_points')}: {errorFor('body.sample_points')}</span> : null}
+                  </label>
                 </div>
+
+                {sectionKind === 'custom' ? (
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label className="text-sm text-dim">
+                      Second moment I ({u.inertia})
+                      <input className="field-input mt-1" step="any" value={i} onChange={(e2) => setI(e2.target.value)} />
+                      {errorFor('body.section.second_moment_m4') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.section.second_moment_m4')}: {errorFor('body.section.second_moment_m4')}</span> : null}
+                    </label>
+                    <label className="text-sm text-dim">
+                      Extreme fibre c ({u.c})
+                      <input className="field-input mt-1" step="any" value={c} onChange={(e2) => setC(e2.target.value)} />
+                      {errorFor('body.section.extreme_fibre_distance_m') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.section.extreme_fibre_distance_m')}: {errorFor('body.section.extreme_fibre_distance_m')}</span> : null}
+                    </label>
+                  </div>
+                ) : null}
+
+                {sectionKind === 'rectangle' ? (
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label className="text-sm text-dim">
+                      Width b ({u.length})
+                      <input className="field-input mt-1" step="any" value={rectWidth} onChange={(e2) => setRectWidth(e2.target.value)} />
+                    </label>
+                    <label className="text-sm text-dim">
+                      Height h ({u.length})
+                      <input className="field-input mt-1" step="any" value={rectHeight} onChange={(e2) => setRectHeight(e2.target.value)} />
+                    </label>
+                  </div>
+                ) : null}
+
+                {sectionKind === 'circle' ? (
+                  <label className="mt-3 block text-sm text-dim">
+                    Diameter d ({u.length})
+                    <input className="field-input mt-1" step="any" value={circleDiameter} onChange={(e2) => setCircleDiameter(e2.target.value)} />
+                  </label>
+                ) : null}
+
+                {sectionKind === 'w_shape' ? (
+                  <div className="mt-3 rounded-lg border border-accent-dim p-3">
+                    <label className="block text-sm text-dim">
+                      W-shape preset
+                      <select className="field-input mt-1" value={wShapeId} onChange={(e2) => setWShapeId(e2.target.value)}>
+                        {W_SHAPE_PRESETS.map((preset) => (
+                          <option key={preset.id} value={preset.id}>
+                            {preset.label} (I={preset.inertia_in4} in^4, c={preset.c_in} in)
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <p className="mt-2 text-xs text-dim">
+                      Presets are stored as imperial section properties and converted at the UI edge when SI is selected.
+                    </p>
+                  </div>
+                ) : null}
 
                 <div className="mt-4">
                   <label className="text-sm text-dim">Load case</label>
@@ -201,24 +458,28 @@ export default function BeamCalculatorPage() {
                 </div>
 
                 {loadKind === 'point_load_centre' || loadKind === 'point_load_arbitrary' ? (
-                  <label className="mt-3 block text-sm text-dim">Point magnitude ({u.force})<input className="field-input mt-1" value={magnitude} onChange={(e2) => setMagnitude(e2.target.value)} /></label>
+                  <label className="mt-3 block text-sm text-dim">Point magnitude ({u.force})<input className="field-input mt-1" step="any" value={magnitude} onChange={(e2) => setMagnitude(e2.target.value)} />{errorFor('body.load.magnitude_n') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.load.magnitude_n')}: {errorFor('body.load.magnitude_n')}</span> : null}</label>
                 ) : null}
                 {loadKind === 'point_load_arbitrary' ? (
-                  <label className="mt-3 block text-sm text-dim">Position from left ({u.length})<input className="field-input mt-1" value={position} onChange={(e2) => setPosition(e2.target.value)} /></label>
+                  <label className="mt-3 block text-sm text-dim">Position from left ({u.length})<input className="field-input mt-1" step="any" value={position} onChange={(e2) => setPosition(e2.target.value)} />{errorFor('body.load.position_m') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.load.position_m')}: {errorFor('body.load.position_m')}</span> : null}</label>
                 ) : null}
                 {loadKind === 'udl_full_span' ? (
-                  <label className="mt-3 block text-sm text-dim">UDL intensity ({u.distributed})<input className="field-input mt-1" value={intensity} onChange={(e2) => setIntensity(e2.target.value)} /></label>
+                  <label className="mt-3 block text-sm text-dim">UDL intensity ({u.distributed})<input className="field-input mt-1" step="any" value={intensity} onChange={(e2) => setIntensity(e2.target.value)} />{errorFor('body.load.intensity_n_per_m') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.load.intensity_n_per_m')}: {errorFor('body.load.intensity_n_per_m')}</span> : null}</label>
                 ) : null}
                 {loadKind === 'end_moment_left' ? (
-                  <label className="mt-3 block text-sm text-dim">Applied moment ({u.moment})<input className="field-input mt-1" value={moment} onChange={(e2) => setMoment(e2.target.value)} /></label>
+                  <label className="mt-3 block text-sm text-dim">Applied moment ({u.moment})<input className="field-input mt-1" step="any" value={moment} onChange={(e2) => setMoment(e2.target.value)} />{errorFor('body.load.moment_nm') ? <span className="mt-1 block text-xs text-warn">{mapFieldName('body.load.moment_nm')}: {errorFor('body.load.moment_nm')}</span> : null}</label>
                 ) : null}
 
-                <button type="submit" disabled={loading} className="btn-primary mt-5">
-                  {loading ? 'Solving...' : 'Solve'}
-                </button>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button type="submit" disabled={loading} className="btn-primary">
+                    {loading ? 'Solving...' : 'Solve'}
+                  </button>
+                  <button type="button" disabled={!resp} onClick={onExportPdf} className={`btn-ghost ${!resp ? 'opacity-60' : ''}`}>
+                    Export PDF
+                  </button>
+                </div>
 
                 {apiError ? <p className="mt-3 text-sm text-danger">{apiError}</p> : null}
-                {fieldError ? <p className="mt-1 text-xs text-warn">Validation: {fieldError}</p> : null}
               </form>
 
               <div className="rounded-2xl border border-accent-dim p-6" style={{ background: 'rgba(10,20,42,0.88)' }}>
@@ -236,12 +497,15 @@ export default function BeamCalculatorPage() {
                     </div>
                     <p className="mb-4 font-mono text-xs text-dim">Reference: {resp.roark_reference}</p>
 
-                    <ChartCard title={`Deflection (${u.deflection})`} data={deflectionData} color="#00e5b8" />
-                    <ChartCard title={`Bending Moment (${u.moment})`} data={momentData} color="#ffcb47" />
-                    <ChartCard title={`Shear (${u.force})`} data={shearData} color="#8b7fff" />
+                    <ChartCard id="chart-deflection" title={`Deflection (${u.deflection})`} data={deflectionData} color="#00e5b8" />
+                    <ChartCard id="chart-moment" title={`Bending Moment (${u.moment})`} data={momentData} color="#ffcb47" />
+                    <ChartCard id="chart-shear" title={`Shear (${u.force})`} data={shearData} color="#8b7fff" />
                   </>
                 ) : (
-                  <p className="text-sm text-dim">Run a solve to view outputs and charts.</p>
+                  <p className="text-sm text-dim">
+                    Run a solve to view reactions, maxima, and the three response curves. Use section presets for
+                    quick starts, or custom I + c for full control.
+                  </p>
                 )}
               </div>
             </div>
@@ -254,9 +518,9 @@ export default function BeamCalculatorPage() {
   )
 }
 
-function ChartCard({ title, data, color }: { title: string; data: Array<{ x: number; y: number }>; color: string }) {
+function ChartCard({ id, title, data, color }: { id: string; title: string; data: Array<{ x: number; y: number }>; color: string }) {
   return (
-    <div className="mb-4 rounded-xl border border-accent-dim p-3">
+    <div id={id} className="mb-4 rounded-xl border border-accent-dim p-3">
       <p className="mb-2 font-mono text-xs text-dim">{title}</p>
       <div className="h-44 w-full">
         <ResponsiveContainer width="100%" height="100%">

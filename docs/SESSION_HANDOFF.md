@@ -1,9 +1,9 @@
 # SESSION HANDOFF
 
-Last updated: 2026-04-29 (EngineerCalc Week 3 shipped — FastAPI route + integration tests)
+Last updated: 2026-04-30 (EngineerCalc Week 5 UI pass — section presets + PDF export + inline validation + Vitest smoke gate)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: `4ec3238  Math-physics-chem-focus-1st-pass` (Week-3 changes pending commit)
+Latest commit on `main`: `4ec3238  Math-physics-chem-focus-1st-pass` (Week-3 + Week-4 changes pending commit)
 
 > Read top-to-bottom. The first half captures the **current state** of the
 > project. The second half (under "Prior Context") preserves the earlier
@@ -43,7 +43,7 @@ curriculum.
 
 ---
 
-## 2. Current state of the codebase (2026-04-28)
+## 2. Current state of the codebase (2026-04-29)
 
 ### 2.1  Marketing site UI — aligned to the four pillars
 
@@ -97,17 +97,48 @@ Files added or edited:
 - `backend/tests/test_beam_calc_api.py` — **new**. 9 `TestClient` tests: 4 happy-path Roark references (one per load case), 1 response-shape contract, 3 validation-error tests (negative span, point-load outside span, unknown load discriminator), 1 imperial round-trip pinning the conversion factors.
 - `backend/requirements.txt` — added `httpx==0.28.1` (Starlette `TestClient` dependency that wasn't pinned).
 - `frontend/src/app/api/beam-calc/solve/route.ts` — **new**. Next.js proxy: `POST /api/beam-calc/solve` → backend `/v1/beam-calc/solve`. Forwards body + `units` query, surfaces 422 with the structured backend payload so the Week-4 UI can render field-level messages without re-doing validation client-side.
-- `frontend/src/config/services.ts` — `beam-calc.apiEndpoint` updated from the placeholder `/api/services/beam-calc` to the real `/api/beam-calc/solve`. `status` left as-is (Products.tsx still hard-codes the badge to "Coming Soon" for `beam-calc`); status will only become honest after Week 4 lands.
+- `frontend/src/config/services.ts` — `beam-calc.apiEndpoint` updated from the placeholder `/api/services/beam-calc` to the real `/api/beam-calc/solve`.
 - `docs/products/engineer-calc/02-learnings.md` — **new**. Journal of Week-2 + Week-3 lessons.
 
-### 2.4  Test status
+### 2.4  EngineerCalc Week 4 — frontend page wiring (this session, 2026-04-29)
+
+Files added or edited:
+- `frontend/src/app/beam-calculator/page.tsx` — **new** live page wired to `/api/beam-calc/solve`; includes:
+  - SI / Imperial toggle that drives `?units=<si|imperial>`
+  - typed input form for span, E, I, optional `c`, sample points, and all four load cases
+  - response panel showing reactions, maxima, EI, Roark reference
+  - 3 `recharts` plots: deflection, bending moment, shear
+- `frontend/src/components/sections/Products.tsx` — removed the hard-coded `beam-calc` "Coming Soon" badge override and removed the special-case blocking of live chip/link behavior for `beam-calc`. Card behavior now follows `status` + `apiEndpoint` like other products.
+
+### 2.5  EngineerCalc Week 5 — section library + export + UX + Vitest smoke gate (2026-04-29 → 2026-04-30)
+
+Files added or edited:
+- `frontend/src/app/beam-calculator/page.tsx` — added section workflow with `custom`, `rectangle`, `circle`, and starter `w_shape` presets; added inline field-level validation rendering from backend 422 payload shape; improved unit-aware placeholders and empty state messaging; added deterministic PDF export flow (`window.print`) that includes inputs, key outputs, Roark reference, and embedded chart SVGs.
+- `docs/products/engineer-calc/03-ui-design.md` — **new** UI conventions doc (screen structure, chart conventions, suffix references, validation behavior, export flow).
+
+Frontend smoke gate (added 2026-04-30, replaces the original Playwright scaffold):
+- Playwright was removed entirely after the local Chromium download repeatedly hung on this Windows host. The smoke gate is now a **Vitest + React Testing Library** component test, which the Week-5 spec explicitly allows ("component or Playwright").
+- `frontend/package.json` — removed `@playwright/test` and the `test:e2e` script; added `test: vitest run`; added dev deps `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `@types/jsdom`.
+- `frontend/vitest.config.mts` — **new**. jsdom env, `@/` and `@components/` aliases mirroring `tsconfig.json`, `pool: 'threads'` (forks pool hung on Windows under Vitest 4), `setupFiles: ['./tests/setup.ts']`, `include: ['tests/**/*.test.{ts,tsx}']`.
+- `frontend/tests/setup.ts` — **new**. Wires `@testing-library/jest-dom/vitest` matchers and runs `cleanup()` after each test.
+- `frontend/tests/beam-calculator.test.tsx` — **new**. Mocks the heavy collaborators (`ParticleCanvas`, `TopBar`, `Navbar`, `Footer`, `HUD`) and `recharts.ResponsiveContainer` so jsdom only renders the form and results panel; stubs global `fetch` to return the canonical centre-load payload; clicks `Solve` with default field values; asserts `Max deflection:` row contains `0.02743902…`. Also pins the request shape: `POST /api/beam-calc/solve?units=si` with `length_m=6`, `youngs_modulus_pa=2e11`, `load = { kind: 'point_load_centre', magnitude_n: 10000 }`.
+- `frontend/playwright.config.ts` — **deleted**.
+- `frontend/tests/beam-calculator.spec.ts` — **deleted**.
+
+Operational note discovered during this session:
+- `backend/.env` had duplicate entries and the **last** values won (`REQUIRE_DATABASE=true` + Postgres `DATABASE_URL`), causing backend startup failure when Postgres wasn't running.
+- For local no-DB runs, ensure the final `.env` values are:
+  - `REQUIRE_DATABASE=false`
+  - `DATABASE_URL=`
+
+### 2.6  Test status
 
 ```cmd
 cd /d C:\tythys-com-cursor\backend
 .venv\Scripts\python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v
 ```
 
-Last run (this session): **35 / 35 passed** in 1.20 s.
+Last run (this session): **35 / 35 passed** in 1.03 s.
 - 26 / 26 from the original `tests/test_beam_calc.py` gate (unchanged).
 - 9 / 9 from the new `tests/test_beam_calc_api.py` integration suite.
 
@@ -118,10 +149,15 @@ on a reachable Postgres given the current `.env` defaults. The new
 `test_beam_calc_api.py` patches `settings.database_url = None` at module
 import time so the EngineerCalc HTTP gate runs offline.
 
-### 2.5  Type / lint status
+### 2.6  Type / lint status
 
-- TypeScript: clean across all edited files (frontend lints clean for `frontend/src/app/api/beam-calc/solve/route.ts` and `frontend/src/config/services.ts`).
+- TypeScript: edited files are lint-clean via IDE diagnostics for:
+  - `frontend/src/app/api/beam-calc/solve/route.ts`
+  - `frontend/src/app/beam-calculator/page.tsx`
+  - `frontend/src/components/sections/Products.tsx`
+  - `frontend/src/config/services.ts`
 - Python: lints clean across `app/api/routes/beam_calc.py`, `app/main.py`, `app/services/beam_calc/types.py`, and `tests/test_beam_calc_api.py`. No warnings beyond the project-wide `pytest-asyncio` deprecation noise.
+- Project note: `frontend/npm run lint` currently fails due to repository ESLint v9 flat-config migration (`eslint.config.*` missing). This is a repo-level configuration issue, not introduced by EngineerCalc wiring.
 
 ---
 
@@ -132,8 +168,8 @@ import time so the EngineerCalc HTTP gate runs offline.
 | 1 | **DONE** | Spec + `01-physics.md` curriculum + Python skeleton + failing TDD tests. |
 | 2 | **DONE** (compressed into Week 1) | Implement the four load cases until every Roark test is green. (Achieved on first compile because formulas were derived against the docs.) |
 | 3 | **DONE** (this session, 2026-04-29) | `POST /v1/beam-calc/solve` with edge-side SI ↔ Imperial conversion; 9 `TestClient` integration tests pinned to the same Roark reference values as the kernel tests; Next.js proxy at `/api/beam-calc/solve`; learnings doc `02-learnings.md`. |
-| 4 | **NEXT** | Build the `/beam-calculator` Next.js page: typed inputs, units toggle (SI / Imperial) wired to the `?units=imperial` query param, live deflection plot + bending-moment diagram + shear diagram. |
-| 5 |  | Section library (rectangle, circle, W-shape from a small AISC JSON), PDF report export, error/edge-case polish. |
+| 4 | **DONE** (this session, 2026-04-29) | `/beam-calculator` page added and wired end-to-end to `/api/beam-calc/solve`, with SI/Imperial toggle and three live charts (deflection/moment/shear). |
+| 5 | **NEXT** | Section library (rectangle, circle, W-shape from a small AISC JSON), PDF report export, error/edge-case polish. |
 | 6 |  | Soft launch: pricing page, freemium gate, ≥ 5 user interviews, capture feedback loop. |
 
 Read `docs/products/engineer-calc/00-spec.md` for the full week-by-week
@@ -143,45 +179,35 @@ table including monetisation tiers and success gates.
 
 ## 4. Next Task (resume exactly from here)
 
-**Week 4 — Build the `/beam-calculator` Next.js page.**
+**Week 5 — section library + report export + polish.**
 
 Concretely:
 
-1. **Page route** `frontend/src/app/beam-calculator/page.tsx`
-   - Server component shell + a client component for the form & charts.
-   - Match the visual language of `frontend/src/components/sections/Pillars.tsx` and `Products.tsx` (glass card on `bg-card`, `accent-dim` border, `font-display` headline, `eyebrow` label).
-   - Dual-column layout above `lg`: inputs on the left, results on the right; stacked on small screens.
+1. **Section property library (frontend + backend contract)**
+   - Add predefined section selectors (rectangle, circle, starter W-shape set) on the `/beam-calculator` page while preserving current custom `I` + `c` entry.
+   - Keep backend core SI-only; any additional section convenience logic stays at the UI edge.
 
-2. **Inputs (typed)**
-   - Span (length) with SI / Imperial toggle (segmented control). The toggle drives the `?units=` query the proxy forwards.
-   - Material picker — at minimum a "Custom (E)" option and 1–2 presets (Steel A36, Aluminium 6061). E shown in current units.
-   - Section: "Custom (I, c)" only for now. (Library lands in Week 5.)
-   - Load picker — discriminated select on the four kinds; conditional fields for each (`magnitude`, `position`, `intensity`, `moment`).
-   - All numeric fields: `inputmode="decimal"`, `step` matched to the unit, helpful placeholder.
-   - Submit button disabled until the request is structurally complete.
+2. **PDF export (first usable version)**
+   - Add export action on `/beam-calculator` that includes: inputs, key outputs, Roark reference, and the three charts.
+   - Prefer deterministic output over design polish for v1.
 
-3. **Wire to the proxy**
-   - `POST /api/beam-calc/solve?units=<si|imperial>` with the constructed body.
-   - On 200 → render the results panel.
-   - On 422 → use `detail` (the forwarded backend payload) to highlight the offending field and show its message inline.
-   - On 5xx → show a top-of-form banner with the upstream message.
+3. **Validation and UX polish**
+   - Inline per-field validation rendering using backend 422 payload shape (already forwarded by proxy).
+   - Better unit-aware placeholders/steps and clearer empty/error states.
 
-4. **Visualisation**
-   - Use `recharts` (already in `frontend/package.json`) for three stacked line charts: deflection δ(x), bending moment M(x), shear V(x).
-   - X-axis: position along the beam in current units.
-   - Annotate `max_deflection_at_m`, `max_bending_moment_at_m`, and the support reactions on the relevant chart.
-   - Include the `roark_reference` string and `flexural_rigidity_ei_nm2` in a small "verification" footer panel — that's the trust signal.
+4. **Status honesty + catalog**
+   - Confirm `beam-calc` card remains honest:
+     - `apiEndpoint` points to `/api/beam-calc/solve` (done)
+     - badge/link behavior now follows normal rules in `Products.tsx` (done)
+   - Decide whether to keep or change `status: 'live'` in `services.ts` based on Week-5 polish completeness.
 
-5. **Marketing card honesty**
-   - When the page exists and renders successfully end-to-end against the backend, **then** flip `services.ts → beam-calc → status` to `'live'` and remove the hard-coded "Coming Soon" override in `frontend/src/components/sections/Products.tsx` (`badgeLabel = service.id === 'beam-calc' ? 'Coming Soon' : ...`).
+5. **Tests**
+   - Frontend smoke gate (component test, Vitest + RTL) is in place and green: submits the canonical centre-load case via stubbed `fetch` and asserts the rendered `δ_max ≈ 0.02743902…`.
+   - Keep backend gate mandatory (`35 passed`).
 
-6. **Tests**
-   - Frontend: at least one component test (or Playwright smoke) that submits the canonical centre-load case (P=10 000 N, L=6 m, E=200 GPa, I=8.2e-6 m⁴) and asserts `δ_max ≈ 0.02743902439024390 m` shows up in the rendered output. The number is the same Roark reference pinned in `tests/test_beam_calc.py` and `tests/test_beam_calc_api.py`; if the UI ever drifts, all three layers should drift together or one of them is wrong.
-   - Backend: no new tests required for Week 4. Re-run the Week-3 gate as the regression check.
-
-7. **Docs**
-   - Add `docs/products/engineer-calc/03-ui-design.md` with screenshots of the final page, the chart legend conventions, and the SI ↔ Imperial unit-suffix table the UI uses.
-   - Update **this** `SESSION_HANDOFF.md` at end of Week 4 with the new state.
+6. **Docs**
+   - Add `docs/products/engineer-calc/03-ui-design.md` (screens + chart conventions + SI/imperial suffix table).
+   - Update this handoff again at session end.
 
 ---
 
@@ -214,7 +240,22 @@ cd /d C:\tythys-com-cursor\backend
 ```
 
 Expected output: `35 passed` (26 unit + 9 integration). If anything
-fails, **do not move on to Week 4** — fix it first.
+fails, **do not move on to Week 5** — fix it first.
+
+### Run the frontend smoke gate (Vitest)
+```cmd
+cd /d C:\tythys-com-cursor\frontend
+npm test
+```
+
+Expected output: `Test Files  1 passed (1)` / `Tests  1 passed (1)`. The
+test stubs `fetch`, mocks the layout/HUD/canvas/recharts collaborators,
+and pins `δ_max ≈ 0.02743902` from the canonical centre-load case.
+
+NOTE: Playwright was intentionally removed on 2026-04-30 — its local
+Chromium download hung on this Windows host. Do not reintroduce
+`@playwright/test` without an explicit decision; the current gate is
+component-level and runs in ~3s.
 
 ### Hit the new HTTP endpoint manually (CMD)
 ```cmd
@@ -301,23 +342,25 @@ Read first:
 - c:\tythys-com-cursor\docs\products\engineer-calc\00-spec.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\01-physics.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\02-learnings.md
-Then continue from "Next Task" exactly (Week 4: build the /beam-calculator Next.js page wired to /api/beam-calc/solve).
+Then continue from "Next Task" exactly (Week 5: section library + PDF export + polish for /beam-calculator).
 Local CMD instructions only.
 Keep all files maintained — including the preserved API Revenue Guard subsystems.
 Preserve the four-pillar UI direction and the build-to-learn methodology.
 Run `python -m pytest tests\test_beam_calc.py tests\test_beam_calc_api.py -v` from C:\tythys-com-cursor\backend before any new work — it must report 35 passed.
+Also run `npm test` from C:\tythys-com-cursor\frontend — Vitest must report 1 passed (1).
 ```
 
 ---
 
 ## 9. Session-close checklist (for the human, before exit)
 
-- [ ] Commit Week-3 changes (this session is currently uncommitted; latest pushed commit is still `Math-physics-chem-focus-1st-pass`).
-- [x] All 35 EngineerCalc tests green (26 unit + 9 integration).
+- [ ] Commit Week-3 + Week-4 + Week-5 changes (this session is currently uncommitted; latest pushed commit is still `Math-physics-chem-focus-1st-pass`).
+- [x] All 35 EngineerCalc backend tests green (26 unit + 9 integration).
+- [x] Frontend Vitest smoke gate green (1 passed): `cd /d C:\tythys-com-cursor\frontend && npm test`.
 - [x] TypeScript clean across all edited files.
 - [x] Lints clean across all edited frontend + backend files.
-- [x] No destructive deletions; legacy API Revenue Guard subsystems preserved (`/v1/services/...`, `/v1/ingest/...`, `/v1/incidents/...` all still mounted).
-- [x] This handoff updated with the EngineerCalc Week-3 state + Week-4 next-task.
+- [x] No destructive deletions of product code; legacy API Revenue Guard subsystems preserved (`/v1/services/...`, `/v1/ingest/...`, `/v1/incidents/...` all still mounted). Playwright tooling deleted by design — see §2.5.
+- [x] This handoff updated with EngineerCalc Week-5 polish + Vitest smoke gate.
 
 ═══════════════════════════════════════════════════════════════════════
                         PRIOR CONTEXT
