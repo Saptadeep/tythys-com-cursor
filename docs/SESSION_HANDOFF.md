@@ -1,9 +1,10 @@
 # SESSION HANDOFF
 
-Last updated: 2026-04-30 (Week 6 security/auth/SEO/admin hardening complete; deployment rollout + smoke validation next)
+Last updated: 2026-05-01 (Week 6 hardening commit `2b88a9c` deployed to production on Vercel; SEO/auth/proxy-gate verified live; remaining work is human-in-the-loop OAuth/Turnstile validation + first-5-user interviews)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: `2b88a9c  Application security hardening and SEO MAJOR`
+Latest commit on `main`: `6fd31dd  Redact secrets in creating-creds.md; sync handoff to commit 2b88a9c`
+Latest deployed commit: `6fd31dd` (auto-deployed by Vercel on push of `main` 2026-05-01)
 
 > Read top-to-bottom. The first half captures the **current state** of the
 > project. The second half (under "Prior Context") preserves the earlier
@@ -211,7 +212,7 @@ Implemented:
 | 3 | **DONE** (this session, 2026-04-29) | `POST /v1/beam-calc/solve` with edge-side SI ↔ Imperial conversion; 9 `TestClient` integration tests pinned to the same Roark reference values as the kernel tests; Next.js proxy at `/api/beam-calc/solve`; learnings doc `02-learnings.md`. |
 | 4 | **DONE** (this session, 2026-04-29) | `/beam-calculator` page added and wired end-to-end to `/api/beam-calc/solve`, with SI/Imperial toggle and three live charts (deflection/moment/shear). |
 | 5 | **DONE** (2026-04-30) | Section library (`custom`/`rectangle`/`circle`/starter `w_shape`), deterministic PDF export, inline 422 field validation, Vitest component smoke gate, and backend-base normalization for Vercel/OCI parity. |
-| 6 | **IN PROGRESS** (started 2026-04-30) | Soft launch + hardening landed (pricing, free-tier gate, auth, admin analytics, SEO files, contact bot prevention, security headers). Remaining: production env rollout + OAuth/Turnstile verification + live smoke + first 5 interviews. |
+| 6 | **IN PROGRESS** (deploy verified 2026-05-01) | Soft launch + hardening commit `2b88a9c` deployed to production. Live smoke verified: `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest`, `/auth/signin` (with `noindex`), `/admin/analytics` (307 → signin when unauth), beam-calc solve, OCI `/health`. Remaining: secret rotation, browser-driven OAuth/admin-gate/Turnstile checks, first 5 user interviews. |
 
 Read `docs/products/engineer-calc/00-spec.md` for the full week-by-week
 table including monetisation tiers and success gates.
@@ -220,39 +221,59 @@ table including monetisation tiers and success gates.
 
 ## 4. Next Task (resume exactly from here)
 
-**Week 6 — production rollout validation after hardening pass.**
+**Week 6 — finish soft-launch validation and start the user-feedback loop.**
 
-Concretely:
+What is *already done* (deploy verified 2026-05-01):
 
-1. **Vercel environment rollout (required)**
-   - Set and verify:
-     - `AUTH_SECRET`
-     - `AUTH_GOOGLE_ID`
-     - `AUTH_GOOGLE_SECRET`
-     - `AUTH_TRUST_HOST=true`
-     - `NEXTAUTH_URL=https://tythys.com`
-     - `ADMIN_EMAILS=sd@tythys.com`
-     - `NEXT_PUBLIC_SITE_URL=https://tythys.com`
-     - `ALLOWED_ORIGINS=https://tythys.com,https://www.tythys.com`
-     - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
-     - `TURNSTILE_SECRET_KEY`
-     - `BACKEND_BASE_URL=http://192.18.156.255:8000` (or whichever OCI port is live)
+- Vercel environment variables for `AUTH_*`, `NEXTAUTH_URL`, `ADMIN_EMAILS`,
+  `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`,
+  `TURNSTILE_SECRET_KEY`, `BACKEND_BASE_URL` are in place — confirmed by
+  the live behaviour below.
+- Hardening commit `2b88a9c` and the redaction commit `6fd31dd` are live on
+  `https://tythys.com`.
+- Live smoke (CLI-checkable):
+  - `GET /robots.txt` → `200 OK`
+  - `GET /sitemap.xml` → `200 OK`
+  - `GET /manifest.webmanifest` → `200 OK`
+  - `GET /auth/signin` → `200 OK`, `X-Robots-Tag: noindex, nofollow, noarchive`
+  - `GET /admin/analytics` (unauth) → `307 → /auth/signin?from=%2Fadmin%2Fanalytics` (proxy auth gate works)
+  - `POST /api/beam-calc/solve` → returns Roark deflection `0.027439…`
+  - OCI `/health` → healthy
+- All responses carry the expected security headers: HSTS w/ preload,
+  full CSP allow-listing Google + Cloudflare Turnstile, `X-Frame-Options: DENY`,
+  `X-Content-Type-Options: nosniff`, locked-down `Permissions-Policy`.
 
-2. **Authentication and admin gate validation**
-   - `https://tythys.com/auth/signin` Google flow succeeds.
-   - `sd@tythys.com` can access `/admin/analytics`.
-   - non-allowlisted Google account is blocked from `/admin/*`.
+What is *still owed* (cannot be done from CLI):
 
-3. **Contact anti-bot validation**
-   - contact submit fails without Turnstile completion.
-   - contact submit succeeds with valid Turnstile token.
-   - honeypot payload is silently discarded server-side.
+1. **Rotate exposed secrets (do this first).**
+   - During the previous chat, real values for `AUTH_SECRET`,
+     `AUTH_GOOGLE_SECRET`, and `TURNSTILE_SECRET_KEY` were pasted into
+     the working tree (and into chat). They were never committed — the
+     redaction commit `6fd31dd` reverted the file before any push — but
+     they should still be regenerated on principle:
+     - new `AUTH_SECRET` (`openssl rand -base64 32`),
+     - new Google OAuth client secret (rotate in Google Cloud Console),
+     - new Turnstile secret key (rotate in Cloudflare dashboard).
+   - Update Vercel env vars with the new values, redeploy.
 
-4. **Production smoke and launch confidence**
-   - backend still healthy on OCI (`/health`, `/ready`, beam solve route).
-   - beam calculator Solve flow still green in production.
-   - verify `robots.txt`, `sitemap.xml`, OG/Twitter image routes.
-   - run first 5 user interviews and capture friction points (units, section presets, export clarity).
+2. **Browser-driven auth + admin-gate validation.**
+   - Sign in via Google at `https://tythys.com/auth/signin` as
+     `sd@tythys.com` → confirm `/admin/analytics` renders.
+   - Sign in with a non-allowlisted Google account → confirm
+     `/admin/analytics` is blocked (should redirect or 403, not render).
+
+3. **Browser-driven contact anti-bot validation.**
+   - Submit contact form *without* completing Turnstile → expect rejection.
+   - Submit contact form *with* a valid Turnstile token → expect success.
+   - Submit a payload with the hidden honeypot field populated → expect
+     silent discard server-side (no error to the bot, no email to you).
+
+4. **First 5 user interviews.**
+   - Use the script in `docs/products/engineer-calc/04-week6-soft-launch.md`.
+   - Capture friction on: units (SI vs Imperial), section presets, PDF
+     export clarity, plot legibility, error messaging.
+   - File the raw notes under `docs/products/engineer-calc/interviews/`
+     (one markdown file per interview).
 
 ---
 
@@ -388,7 +409,8 @@ Read first:
 - c:\tythys-com-cursor\docs\products\engineer-calc\00-spec.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\01-physics.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\02-learnings.md
-Then continue from "Next Task" exactly (Week 6: production env rollout + OAuth/Turnstile validation + live smoke + first-5-user feedback loop).
+- c:\tythys-com-cursor\docs\products\engineer-calc\04-week6-soft-launch.md
+Then continue from "Next Task" exactly (Week 6 remaining items: secret rotation, browser-driven OAuth/admin/Turnstile validation, first-5-user interviews — production deploy of `2b88a9c`/`6fd31dd` is already verified live).
 Local CMD instructions only.
 Keep all files maintained — including the preserved API Revenue Guard subsystems.
 Preserve the four-pillar UI direction and the build-to-learn methodology.
@@ -410,6 +432,8 @@ Then run `npm run build` from C:\tythys-com-cursor\frontend — production build
 - [ ] Working tree has local leftovers to triage before next commit: `frontend/next-env.d.ts` (generated) and untracked `notes-how-to-run-on-oci.md` (user notes draft). Keep/delete by explicit choice; do not auto-remove.
 - [x] No destructive deletions of product code; legacy API Revenue Guard subsystems preserved (`/v1/services/...`, `/v1/ingest/...`, `/v1/incidents/...` all still mounted). Playwright tooling deleted by design — see §2.5.
 - [x] This handoff updated with Week-6 security/auth/SEO/admin hardening completion + deployment rollout checklist + resume target.
+- [x] (2026-05-01) Hardening commit `2b88a9c` pushed to `origin/main` and auto-deployed by Vercel. Live SEO/auth/security smoke verified via CLI (see §4 "What is already done"). Browser-side OAuth, admin allowlist, and Turnstile flows still owed by the human.
+- [x] (2026-05-01) `creating-creds.md` rewritten with placeholder values (commit `6fd31dd`); real secrets never reached `origin`. Strongly recommend rotating `AUTH_SECRET`, `AUTH_GOOGLE_SECRET`, and `TURNSTILE_SECRET_KEY` regardless before next push to lock in the safety property.
 
 ═══════════════════════════════════════════════════════════════════════
                         PRIOR CONTEXT
