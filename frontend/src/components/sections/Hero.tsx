@@ -1,7 +1,8 @@
 'use client'
 // src/components/sections/Hero.tsx
-import { motion, cubicBezier }      from 'motion/react'
+import { motion } from 'motion/react'
 import { ArrowRight, ChevronDown } from 'lucide-react'
+import { LandingSectionLink } from '@/components/layout/LandingSectionLink'
 
 // Maps 1:1 to PILLARS in src/config/services.ts.
 // Hero stats row is the first place a visitor sees the four-pillar spine.
@@ -69,12 +70,12 @@ export function Hero() {
 
         {/* CTAs */}
         <motion.div {...fadeUp(0.3)} className="flex flex-col gap-3 xs:flex-row xs:flex-wrap">
-          <a href="#products" className="btn-primary">
+          <LandingSectionLink sectionId="products" className="btn-primary">
             Explore Tools <ArrowRight size={16} />
-          </a>
-          <a href="#pillars" className="btn-secondary">
+          </LandingSectionLink>
+          <LandingSectionLink sectionId="pillars" className="btn-secondary">
             Our Approach
-          </a>
+          </LandingSectionLink>
         </motion.div>
 
         {/* Stats row */}

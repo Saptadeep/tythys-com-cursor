@@ -9,6 +9,7 @@ import { cn }                   from '@/lib/cn'
 import { SERVICES }             from '@/config/services'
 import { BrandGlyph }           from './BrandGlyph'
 import { NavUserMenu }          from './NavUserMenu'
+import { LandingSectionLink }   from './LandingSectionLink'
 
 /* Map known sub-pages → contextual subline shown under the wordmark.
    Falls back to "Control Plane" on the marketing/landing route. */
@@ -16,13 +17,21 @@ const SUBLINE_BY_PATH: Array<{ test: (p: string) => boolean; label: string }> = 
   { test: (p) => p.startsWith('/gateway-observability'), label: 'GatewaySight · Control Plane' },
 ]
 
-const NAV_LINKS = [
-  { label: 'Pillars',  href: '#pillars'  },
-  { label: 'Products', href: '#products' },
-  { label: 'Pricing',  href: '/pricing'  },
-  { label: 'Approach', href: '#process'  },
-  { label: 'About',    href: '#about'    },
+/** Marketing anchors live on `/`; use `/#section` so links work from inner routes (e.g. `/beam-calculator`). */
+type NavEntry =
+  | { kind: 'section'; label: string; sectionId: string }
+  | { kind: 'route'; label: string; href: string }
+
+const NAV_ENTRIES: NavEntry[] = [
+  { kind: 'section', label: 'Pillars', sectionId: 'pillars' },
+  { kind: 'section', label: 'Products', sectionId: 'products' },
+  { kind: 'route', label: 'Pricing', href: '/pricing' },
+  { kind: 'section', label: 'Approach', sectionId: 'process' },
+  { kind: 'section', label: 'About', sectionId: 'about' },
 ]
+
+const linkClass =
+  'text-sm font-normal tracking-[0.02em] text-dim transition-colors duration-200 hover:text-accent'
 
 const LIVE_COUNT = SERVICES.filter(s => s.status === 'live').length
 
@@ -80,12 +89,17 @@ export function Navbar() {
 
           {/* Desktop links — right-side cluster (links → live pill → CTA) */}
           <ul className="hidden items-center gap-8 md:flex">
-            {NAV_LINKS.map(link => (
-              <li key={link.href}>
-                <a href={link.href}
-                   className="text-sm font-normal tracking-[0.02em] text-dim transition-colors duration-200 hover:text-accent">
-                  {link.label}
-                </a>
+            {NAV_ENTRIES.map(entry => (
+              <li key={entry.label}>
+                {entry.kind === 'section' ? (
+                  <LandingSectionLink sectionId={entry.sectionId} className={linkClass}>
+                    {entry.label}
+                  </LandingSectionLink>
+                ) : (
+                  <Link href={entry.href} className={linkClass}>
+                    {entry.label}
+                  </Link>
+                )}
               </li>
             ))}
 
@@ -104,9 +118,9 @@ export function Navbar() {
             </li>
 
             <li>
-              <a href="#contact" className="btn-ghost text-sm">
+              <LandingSectionLink sectionId="contact" className="btn-ghost text-sm">
                 Get in Touch
-              </a>
+              </LandingSectionLink>
             </li>
           </ul>
 
@@ -171,23 +185,44 @@ export function Navbar() {
 
               {/* Nav links — compact, full-width tap targets */}
               <nav className="px-3 py-3">
-                {[...NAV_LINKS, { label: 'Contact', href: '#contact' }].map((link, i) => (
-                  <motion.a
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)}
+                {[
+                  ...NAV_ENTRIES,
+                  { kind: 'section' as const, label: 'Contact', sectionId: 'contact' },
+                ].map((entry, i) => (
+                  <motion.div
+                    key={entry.label}
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05, duration: 0.2 }}
-                    className="flex items-center justify-between rounded-xl px-4 py-3.5 text-[#dde4f0] transition-all duration-150 hover:bg-accent/8 hover:text-accent group"
                   >
-                    <span className="font-body text-base font-medium tracking-[-0.01em]">
-                      {link.label}
-                    </span>
-                    <span className="text-dim transition-all duration-150 group-hover:text-accent group-hover:translate-x-0.5 text-sm">
-                      →
-                    </span>
-                  </motion.a>
+                    {entry.kind === 'section' ? (
+                      <LandingSectionLink
+                        sectionId={entry.sectionId}
+                        onAfterClick={() => setMenuOpen(false)}
+                        className="flex items-center justify-between rounded-xl px-4 py-3.5 text-[#dde4f0] transition-all duration-150 hover:bg-accent/8 hover:text-accent group"
+                      >
+                        <span className="font-body text-base font-medium tracking-[-0.01em]">
+                          {entry.label}
+                        </span>
+                        <span className="text-dim transition-all duration-150 group-hover:text-accent group-hover:translate-x-0.5 text-sm">
+                          →
+                        </span>
+                      </LandingSectionLink>
+                    ) : (
+                      <Link
+                        href={entry.href}
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center justify-between rounded-xl px-4 py-3.5 text-[#dde4f0] transition-all duration-150 hover:bg-accent/8 hover:text-accent group"
+                      >
+                        <span className="font-body text-base font-medium tracking-[-0.01em]">
+                          {entry.label}
+                        </span>
+                        <span className="text-dim transition-all duration-150 group-hover:text-accent group-hover:translate-x-0.5 text-sm">
+                          →
+                        </span>
+                      </Link>
+                    )}
+                  </motion.div>
                 ))}
                 <div className="mt-1 border-t border-accent/10 pt-2">
                   <NavUserMenu variant="mobile" />

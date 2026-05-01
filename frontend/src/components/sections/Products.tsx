@@ -7,6 +7,7 @@ import Link              from 'next/link'
 import { SERVICES, STATUS_CONFIG, PILLARS } from '@/config/services'
 import { cn }            from '@/lib/cn'
 import type { Service }  from '@/types'
+import { LandingSectionLink } from '@/components/layout/LandingSectionLink'
 
 // Quick lookup so each card can render its pillar chips with the right
 // symbol + colour without recomputing on every render.
@@ -130,7 +131,9 @@ function ProductCard({ service, index }: { service: Service; index: number }) {
           <div className="mt-auto flex items-center justify-between border-t border-accent-dim pt-3.5">
             <span className="font-mono text-[0.76rem] text-gold">
               {service.price === 'Contact for pricing' || service.price === 'School licensing' ? (
-                <a href="#contact">{service.price}</a>
+                <LandingSectionLink sectionId="contact" className="underline-offset-2 hover:underline">
+                  {service.price}
+                </LandingSectionLink>
               ) : (
                 service.price
               )}
@@ -146,10 +149,12 @@ function ProductCard({ service, index }: { service: Service; index: number }) {
                 Open <ExternalLink size={11} />
               </Link>
             ) : (
-              <a href="#contact"
-                 className="flex min-h-[40px] items-center gap-1.5 text-[0.76rem] font-medium text-accent transition-all duration-200 hover:gap-3">
+              <LandingSectionLink
+                sectionId="contact"
+                className="flex min-h-[40px] items-center gap-1.5 text-[0.76rem] font-medium text-accent transition-all duration-200 hover:gap-3"
+              >
                 Learn more <ArrowRight size={11} />
-              </a>
+              </LandingSectionLink>
             )}
           </div>
         </div>

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Github, Linkedin } from 'lucide-react'
 
 const LINKS = [
@@ -15,7 +16,7 @@ export function Footer() {
 
           {/* Wordmark + tagline */}
           <div className="flex items-center gap-3">
-            <a href="#" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <span className="flex flex-col leading-tight">
                 <span className="font-display text-[1.05rem] font-bold tracking-[-0.025em] text-[#dde4f0]">
                   Tythys<span className="text-accent">One</span>
@@ -24,7 +25,7 @@ export function Footer() {
                   Control Plane
                 </span>
               </span>
-            </a>
+            </Link>
             <p className="max-w-xs font-mono text-[0.64rem] leading-relaxed text-dim">
               Quantitative reasoning, modeling, and scientific thinking &mdash; turned into working software.
             </p>

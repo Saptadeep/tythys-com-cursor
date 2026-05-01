@@ -4,6 +4,7 @@ import './globals.css'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/components/providers/Providers'
 import { SiteJsonLd } from '@/components/seo/JsonLd'
+import { HashScrollHandler } from '@/components/layout/HashScrollHandler'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tythys.com'
 
@@ -48,6 +49,9 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+  },
 }
 
 export const viewport: Viewport = {
@@ -68,6 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-bg text-[#dde4f0] font-body antialiased overflow-x-hidden">
+        <HashScrollHandler />
         <SiteJsonLd />
         <Providers>{children}</Providers>
         <Analytics />
