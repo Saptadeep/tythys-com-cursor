@@ -1,10 +1,11 @@
 # SESSION HANDOFF
 
-Last updated: 2026-05-01 (Week 6 hardening commit `2b88a9c` deployed to production on Vercel; SEO/auth/proxy-gate verified live; remaining work is human-in-the-loop OAuth/Turnstile validation + first-5-user interviews)
+Last updated: 2026-05-01 (session close — **paused**: no further product extension queued; Week 6 human-validation items + optional SEO tidy remain)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: `6fd31dd  Redact secrets in creating-creds.md; sync handoff to commit 2b88a9c`
-Latest deployed commit: `6fd31dd` (auto-deployed by Vercel on push of `main` 2026-05-01)
+Latest commit on `main`: `1a5375f  Favicon added`
+Recent stack on same branch (newest first): `1a5375f` → `d874e7e` → `7bdfd73` → `f795135` → … — see `git log`.
+After pull/push: redeploy Vercel and smoke `https://tythys.com/icon.svg` + `https://tythys.com/apple-icon`.
 
 > Read top-to-bottom. The first half captures the **current state** of the
 > project. The second half (under "Prior Context") preserves the earlier
@@ -201,6 +202,33 @@ Implemented:
 - Security headers/CSP/CORS allowlist in `frontend/next.config.js` (removed wildcard CORS).
 - Added API hardening tests in `frontend/tests/contact-api.test.ts`.
 
+### 2.9  Brand favicon, Apple touch icon & cross-route nav (2026-05-01)
+
+**Goal:** visible favicon in browser tabs; iOS home-screen icon; navbar/footer links to
+landing sections must work from **any** route (e.g. `/beam-calculator`), not only on `/`.
+
+Files added or edited:
+- `frontend/src/app/icon.svg` — static SVG favicon (gradient tile + `T` monogram, aligned with `BrandGlyph`).
+- `frontend/src/app/apple-icon.tsx` — edge `ImageResponse` route **`/apple-icon`** (180×180 PNG) for Apple touch / PWA.
+- `frontend/src/app/layout.tsx` — `metadata.icons` lists `/icon.svg` and Apple `/apple-icon`; root layout unchanged otherwise.
+- `frontend/src/app/manifest.ts` — manifest icons: `/icon.svg` + `/apple-icon` (replaces obsolete `/favicon.ico` reference).
+- `frontend/src/components/layout/LandingSectionLink.tsx` — client `Link` to `/#section`; when already on `/`, smooth-scroll + `replaceState` hash (offset ~96px under fixed chrome).
+- `frontend/src/components/layout/HashScrollHandler.tsx` — mounted in root layout; on navigate to `/` with hash, scrolls target section after paint.
+- `frontend/src/components/layout/Navbar.tsx` — Pillars / Products / Approach / About / Contact / Get in Touch use landing links + `/pricing` route.
+- `frontend/src/components/layout/Footer.tsx` — wordmark is `<Link href="/">` (was `href="#"`).
+- `frontend/src/components/sections/Hero.tsx` — primary CTAs use `LandingSectionLink`.
+- `frontend/src/components/sections/Products.tsx` — contact/pricing links use `LandingSectionLink` for `contact`.
+
+Related commits (recent `main`): handoff doc updates (`f795135`), favicon + nav (`7bdfd73`), Apple icon (`d874e7e`), tip commit (`1a5375f`).
+
+### 2.10  SEO audit — parked improvements (conversation 2026-05-01, **not implemented**)
+
+Optional follow-ups when resuming marketing/SEO work:
+- Remove or replace misleading **`SearchAction`** in `frontend/src/components/seo/JsonLd.tsx` (`/?q=` has no real site search).
+- Populate **`Organization.sameAs`** or omit empty array when social URLs exist.
+- Optionally route-specific OG images for `/beam-calculator` and `/pricing` (CTR).
+- Confirm apex vs `www` redirect + `NEXT_PUBLIC_SITE_URL` parity in Vercel/DNS.
+
 ---
 
 ## 3. The 6-week EngineerCalc ship plan (where we are)
@@ -212,7 +240,7 @@ Implemented:
 | 3 | **DONE** (this session, 2026-04-29) | `POST /v1/beam-calc/solve` with edge-side SI ↔ Imperial conversion; 9 `TestClient` integration tests pinned to the same Roark reference values as the kernel tests; Next.js proxy at `/api/beam-calc/solve`; learnings doc `02-learnings.md`. |
 | 4 | **DONE** (this session, 2026-04-29) | `/beam-calculator` page added and wired end-to-end to `/api/beam-calc/solve`, with SI/Imperial toggle and three live charts (deflection/moment/shear). |
 | 5 | **DONE** (2026-04-30) | Section library (`custom`/`rectangle`/`circle`/starter `w_shape`), deterministic PDF export, inline 422 field validation, Vitest component smoke gate, and backend-base normalization for Vercel/OCI parity. |
-| 6 | **IN PROGRESS** (deploy verified 2026-05-01) | Soft launch + hardening commit `2b88a9c` deployed to production. Live smoke verified: `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest`, `/auth/signin` (with `noindex`), `/admin/analytics` (307 → signin when unauth), beam-calc solve, OCI `/health`. Remaining: secret rotation, browser-driven OAuth/admin-gate/Turnstile checks, first 5 user interviews. |
+| 6 | **IN PROGRESS** (deploy verified 2026-05-01; polish on `main` through `1a5375f`) | Soft launch + hardening deployed. UX polish: favicon, Apple touch icon, cross-route landing nav (§2.9). Still owed: secret rotation (optional hygiene), browser OAuth/admin/Turnstile checks, first 5 interviews. **Extension paused** until explicit go — see §4. |
 
 Read `docs/products/engineer-calc/00-spec.md` for the full week-by-week
 table including monetisation tiers and success gates.
@@ -221,9 +249,12 @@ table including monetisation tiers and success gates.
 
 ## 4. Next Task (resume exactly from here)
 
-**Week 6 — finish soft-launch validation and start the user-feedback loop.**
+**Stance:** Application **extension is paused.** Do not start new product surfaces or scope
+until the human explicitly unpauses. Keep all existing files and subsystems maintained.
 
-What is *already done* (deploy verified 2026-05-01):
+**Week 6 — still owed when you resume:** finish soft-launch validation and the user-feedback loop.
+
+What is *already done* (deploy verified 2026-05-01; re-verify after any new push):
 
 - Vercel environment variables for `AUTH_*`, `NEXTAUTH_URL`, `ADMIN_EMAILS`,
   `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`,
@@ -235,6 +266,8 @@ What is *already done* (deploy verified 2026-05-01):
   - `GET /robots.txt` → `200 OK`
   - `GET /sitemap.xml` → `200 OK`
   - `GET /manifest.webmanifest` → `200 OK`
+  - `GET /icon.svg` → `200 OK` (favicon)
+  - `GET /apple-icon` → dynamic PNG `200 OK` (Apple touch)
   - `GET /auth/signin` → `200 OK`, `X-Robots-Tag: noindex, nofollow, noarchive`
   - `GET /admin/analytics` (unauth) → `307 → /auth/signin?from=%2Fadmin%2Fanalytics` (proxy auth gate works)
   - `POST /api/beam-calc/solve` → returns Roark deflection `0.027439…`
@@ -410,7 +443,7 @@ Read first:
 - c:\tythys-com-cursor\docs\products\engineer-calc\01-physics.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\02-learnings.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\04-week6-soft-launch.md
-Then continue from "Next Task" exactly (Week 6 remaining items: secret rotation, browser-driven OAuth/admin/Turnstile validation, first-5-user interviews — production deploy of `2b88a9c`/`6fd31dd` is already verified live).
+Then continue from "Next Task" exactly (paused extension — Week 6 remaining: secret rotation optional hygiene, browser-driven OAuth/admin/Turnstile validation, first-5-user interviews; optional SEO items in §2.10. Production hardening + favicon/nav/Apple icon commits are on `main` — redeploy Vercel and smoke-test `/icon.svg`, `/apple-icon` after pull.)
 Local CMD instructions only.
 Keep all files maintained — including the preserved API Revenue Guard subsystems.
 Preserve the four-pillar UI direction and the build-to-learn methodology.
@@ -434,6 +467,8 @@ Then run `npm run build` from C:\tythys-com-cursor\frontend — production build
 - [x] This handoff updated with Week-6 security/auth/SEO/admin hardening completion + deployment rollout checklist + resume target.
 - [x] (2026-05-01) Hardening commit `2b88a9c` pushed to `origin/main` and auto-deployed by Vercel. Live SEO/auth/security smoke verified via CLI (see §4 "What is already done"). Browser-side OAuth, admin allowlist, and Turnstile flows still owed by the human.
 - [x] (2026-05-01) `creating-creds.md` rewritten with placeholder values (commit `6fd31dd`); real secrets never reached `origin`. Strongly recommend rotating `AUTH_SECRET`, `AUTH_GOOGLE_SECRET`, and `TURNSTILE_SECRET_KEY` regardless before next push to lock in the safety property.
+- [x] (2026-05-01) **Session close:** Handoff refreshed; favicon (`icon.svg`), Apple touch route (`apple-icon.tsx`), cross-route landing nav (`LandingSectionLink`, `HashScrollHandler`), Footer home link — on `main` at `1a5375f`. Working tree clean (`main...origin/main`). Optional SEO tidy-ups documented in §2.10 (not coded).
+- [ ] **Paused:** No new application extension until explicitly resumed — preserve API Revenue Guard routes, four-pillar UI, EngineerCalc tests/build gates.
 
 ═══════════════════════════════════════════════════════════════════════
                         PRIOR CONTEXT
