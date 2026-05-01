@@ -3,7 +3,7 @@
 Last updated: 2026-04-30 (Week 6 security/auth/SEO/admin hardening complete; deployment rollout + smoke validation next)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: `2c84a41  EngineerCalc Week 6 kickoff: pricing page, free-tier banner+watermark, soft-launch runbook, OCI runbook switched to Vercel FE + OCI BE`
+Latest commit on `main`: `2b88a9c  Application security hardening and SEO MAJOR`
 
 > Read top-to-bottom. The first half captures the **current state** of the
 > project. The second half (under "Prior Context") preserves the earlier

@@ -63,18 +63,23 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 In Vercel project → **Settings → Environment Variables**, add:
 
-- `AUTH_SECRET` = (from step 1)
-- `AUTH_GOOGLE_ID` = (from Google)
-- `AUTH_GOOGLE_SECRET` = (from Google)
-- `AUTH_TRUST_HOST` = `true`
-- `NEXTAUTH_URL` = `https://tythys.com`
-- `ADMIN_EMAILS` = `sd@tythys.com`
-- `NEXT_PUBLIC_SITE_URL` = `https://tythys.com`
-- `ALLOWED_ORIGINS` = `https://tythys.com,https://www.tythys.com`
-- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` = (from Turnstile)
-- `TURNSTILE_SECRET_KEY` = (from Turnstile)
-- Keep existing backend var:
-  - `BACKEND_BASE_URL` = `http://192.18.156.255:8000` (your current live setup)
+```
+AUTH_SECRET                    = <output of step 1>
+AUTH_GOOGLE_ID                 = <Client ID from Google OAuth>
+AUTH_GOOGLE_SECRET             = <Client Secret from Google OAuth>
+AUTH_TRUST_HOST                = true
+NEXTAUTH_URL                   = https://tythys.com
+ADMIN_EMAILS                   = sd@tythys.com
+NEXT_PUBLIC_SITE_URL           = https://tythys.com
+ALLOWED_ORIGINS                = https://tythys.com,https://www.tythys.com
+NEXT_PUBLIC_TURNSTILE_SITE_KEY = <Turnstile site key>
+TURNSTILE_SECRET_KEY           = <Turnstile secret key>
+BACKEND_BASE_URL               = http://192.18.156.255:8000
+```
+
+> **Never commit real secret values into this file.** This document only
+> describes the *shape* of the configuration; concrete values live only
+> in the Vercel dashboard (and in your local `.env`, which is git-ignored).
 
 Apply to **Production** (and Preview if you want preview testing).
 
