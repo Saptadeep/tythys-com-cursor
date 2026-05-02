@@ -1,10 +1,10 @@
 # SESSION HANDOFF
 
-Last updated: 2026-05-01 (session close — **paused**: no further product extension queued; Week 6 human-validation items + optional SEO tidy remain)
+Last updated: 2026-05-01 (session close — **paused**: no further product extension queued; Week 6 human-validation items + optional SEO tidy remain; **GTM copy for GatewaySight** captured under `docs/sales/`)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: `1a5375f  Favicon added`
-Recent stack on same branch (newest first): `1a5375f` → `d874e7e` → `7bdfd73` → `f795135` → … — see `git log`.
+Latest commit on `main`: verify with `git log -1 --oneline` after pull (doc-only updates may land after product deploys).
+Recent history: `git log -8 --oneline` (handoff + GatewaySight GTM brief landed 2026-05-01 evening).
 After pull/push: redeploy Vercel and smoke `https://tythys.com/icon.svg` + `https://tythys.com/apple-icon`.
 
 > Read top-to-bottom. The first half captures the **current state** of the
@@ -219,7 +219,7 @@ Files added or edited:
 - `frontend/src/components/sections/Hero.tsx` — primary CTAs use `LandingSectionLink`.
 - `frontend/src/components/sections/Products.tsx` — contact/pricing links use `LandingSectionLink` for `contact`.
 
-Related commits (recent `main`): handoff doc updates (`f795135`), favicon + nav (`7bdfd73`), Apple icon (`d874e7e`), tip commit (`1a5375f`).
+Related commits (recent `main`): … `580c6ed` (handoff §2.9/§2.10 snapshot), `1a5375f`, `d874e7e` (Apple icon), `7bdfd73` (favicon + nav), `f795135`, … see `git log`.
 
 ### 2.10  SEO audit — parked improvements (conversation 2026-05-01, **not implemented**)
 
@@ -228,6 +228,19 @@ Optional follow-ups when resuming marketing/SEO work:
 - Populate **`Organization.sameAs`** or omit empty array when social URLs exist.
 - Optionally route-specific OG images for `/beam-calculator` and `/pricing` (CTR).
 - Confirm apex vs `www` redirect + `NEXT_PUBLIC_SITE_URL` parity in Vercel/DNS.
+
+### 2.11  Product storytelling & GatewaySight GTM (conversation 2026-05-01, **no code churn**)
+
+**Explored in chat (for onboarding / resumes):**
+
+- **Menu “Pillars”** — navigates to the home-page `#pillars` block; the four pillars are the operating story; products declare which pillars they exercise via `services.ts`.
+- **Live catalogue** — three `status: 'live'` entries in `frontend/src/config/services.ts`: **GatewaySight** (`/gateway-observability`), **EngineerCalc** (`/beam-calculator`), **Custom Models** (contact CTA `#contact`); all others are **Coming Soon**.
+- **GatewaySight ↔ pillars** — narratively: *quantitative reasoning* (trustworthy gateway metrics) + *problem-solving + software* (insights packaged for operators). Not tagged with modeling / scientific-thinking in data; expand story only if positioning changes.
+
+**Captured for sales:**
+
+- Full prospect pitch + timed demo flow → `docs/sales/gatewaysight-prospect-brief.md`  
+  (Use that file for demos; update it when the `/gateway-observability` UI or positioning shifts.)
 
 ---
 
@@ -240,7 +253,7 @@ Optional follow-ups when resuming marketing/SEO work:
 | 3 | **DONE** (this session, 2026-04-29) | `POST /v1/beam-calc/solve` with edge-side SI ↔ Imperial conversion; 9 `TestClient` integration tests pinned to the same Roark reference values as the kernel tests; Next.js proxy at `/api/beam-calc/solve`; learnings doc `02-learnings.md`. |
 | 4 | **DONE** (this session, 2026-04-29) | `/beam-calculator` page added and wired end-to-end to `/api/beam-calc/solve`, with SI/Imperial toggle and three live charts (deflection/moment/shear). |
 | 5 | **DONE** (2026-04-30) | Section library (`custom`/`rectangle`/`circle`/starter `w_shape`), deterministic PDF export, inline 422 field validation, Vitest component smoke gate, and backend-base normalization for Vercel/OCI parity. |
-| 6 | **IN PROGRESS** (deploy verified 2026-05-01; polish on `main` through `1a5375f`) | Soft launch + hardening deployed. UX polish: favicon, Apple touch icon, cross-route landing nav (§2.9). Still owed: secret rotation (optional hygiene), browser OAuth/admin/Turnstile checks, first 5 interviews. **Extension paused** until explicit go — see §4. |
+| 6 | **IN PROGRESS** (deploy verified 2026-05-01; product polish through `580c6ed` on `main`) | Soft launch + hardening deployed. UX polish: favicon, Apple touch icon, cross-route landing nav (§2.9). Handoff/GTM docs may be ahead of last deploy — see `git log`. Still owed: secret rotation (optional hygiene), browser OAuth/admin/Turnstile checks, first 5 interviews. **Extension paused** until explicit go — see §4. |
 
 Read `docs/products/engineer-calc/00-spec.md` for the full week-by-week
 table including monetisation tiers and success gates.
@@ -439,11 +452,12 @@ Use this exactly in a new chat:
 Resume project at c:\tythys-com-cursor.
 Read first:
 - c:\tythys-com-cursor\docs\SESSION_HANDOFF.md
+- c:\tythys-com-cursor\docs\sales\gatewaysight-prospect-brief.md *(prospect pitch + demo flow — optional unless GTM work)*
 - c:\tythys-com-cursor\docs\products\engineer-calc\00-spec.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\01-physics.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\02-learnings.md
 - c:\tythys-com-cursor\docs\products\engineer-calc\04-week6-soft-launch.md
-Then continue from "Next Task" exactly (paused extension — Week 6 remaining: secret rotation optional hygiene, browser-driven OAuth/admin/Turnstile validation, first-5-user interviews; optional SEO items in §2.10. Production hardening + favicon/nav/Apple icon commits are on `main` — redeploy Vercel and smoke-test `/icon.svg`, `/apple-icon` after pull.)
+Then continue from "Next Task" exactly (paused extension — Week 6 remaining: secret rotation optional hygiene, browser-driven OAuth/admin/Turnstile validation, first-5-user interviews; optional SEO items in §2.10; GatewaySight GTM: see SESSION_HANDOFF §2.11 and `docs/sales/gatewaysight-prospect-brief.md`. Production hardening + favicon/nav/Apple icon commits are on `main` — redeploy Vercel and smoke-test `/icon.svg`, `/apple-icon` after pull.)
 Local CMD instructions only.
 Keep all files maintained — including the preserved API Revenue Guard subsystems.
 Preserve the four-pillar UI direction and the build-to-learn methodology.
@@ -468,6 +482,7 @@ Then run `npm run build` from C:\tythys-com-cursor\frontend — production build
 - [x] (2026-05-01) Hardening commit `2b88a9c` pushed to `origin/main` and auto-deployed by Vercel. Live SEO/auth/security smoke verified via CLI (see §4 "What is already done"). Browser-side OAuth, admin allowlist, and Turnstile flows still owed by the human.
 - [x] (2026-05-01) `creating-creds.md` rewritten with placeholder values (commit `6fd31dd`); real secrets never reached `origin`. Strongly recommend rotating `AUTH_SECRET`, `AUTH_GOOGLE_SECRET`, and `TURNSTILE_SECRET_KEY` regardless before next push to lock in the safety property.
 - [x] (2026-05-01) **Session close:** Handoff refreshed; favicon (`icon.svg`), Apple touch route (`apple-icon.tsx`), cross-route landing nav (`LandingSectionLink`, `HashScrollHandler`), Footer home link — on `main` at `1a5375f`. Working tree clean (`main...origin/main`). Optional SEO tidy-ups documented in §2.10 (not coded).
+- [x] (2026-05-01) **Session close (evening):** Cursor-exit handoff: `docs/SESSION_HANDOFF.md` refreshed; `docs/sales/gatewaysight-prospect-brief.md` added; §2.11 summarizes pillars / live products / GatewaySight GTM from chat. **`main` is 1 commit ahead of `origin/main`** (doc-only) until you `git push`.
 - [ ] **Paused:** No new application extension until explicitly resumed — preserve API Revenue Guard routes, four-pillar UI, EngineerCalc tests/build gates.
 
 ═══════════════════════════════════════════════════════════════════════
@@ -576,6 +591,7 @@ Recent caution:
 - `SESSION_HANDOFF.md` (this file)
 - `products/engineer-calc/00-spec.md` *(added 2026-04-28)*
 - `products/engineer-calc/01-physics.md` *(added 2026-04-28)*
+- `sales/gatewaysight-prospect-brief.md` *(added 2026-05-01)*
 
 ## Earlier "Next Task" (superseded by §4 above)
 
