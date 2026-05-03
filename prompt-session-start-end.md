@@ -1,7 +1,8 @@
 # Prompt on startup:
-    Resume project at c:\tythys-com-cursor.
-    Then continue from “Next Task” exactly.
-    Use CMD instructions only.
+    Resume project at c:\tythys-com-cursor
+    Resume project at C:\tythys-com-cursor\bloodtable
+
+    Optionally for exhaustive project resumption instructions: refer C:\tythys-com-cursor\docs\SESSION_HANDOFF.md
     Read:
     - c:\tythys-com-cursor\docs\PRODUCT_UI_ARCHITECTURE.md
     - c:\tythys-com-cursor\docs\CUSTOMIZATION_AND_EXTENSION_GUIDE.md
