@@ -1,16 +1,40 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit'
-import { verifyTurnstile } from '@/lib/security/verifyTurnstile'
+import { turnstileFailureUserMessage, verifyTurnstile } from '@/lib/security/verifyTurnstile'
 import { parseJson } from '@/lib/security/validate'
 import { enforceSameOrigin } from '@/lib/security/csrf'
 
 const ContactSchema = z.object({
-  firstName: z.string().trim().min(1, 'First name is required.').max(80),
-  lastName: z.string().trim().max(80).optional().default(''),
-  email: z.string().trim().email('A valid email is required.').max(160),
-  interest: z.string().trim().max(120).optional().default(''),
-  message: z.string().trim().max(4000).optional().default(''),
+  firstName: z
+    .string()
+    .trim()
+    .min(1, 'First name is required.')
+    .max(80, 'First name is too long (maximum 80 characters).'),
+  lastName: z
+    .string()
+    .trim()
+    .max(80, 'Last name is too long (maximum 80 characters).')
+    .optional()
+    .default(''),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Email is required.')
+    .email('Use a valid email address (for example, name@company.com).')
+    .max(160, 'Email is too long (maximum 160 characters).'),
+  interest: z
+    .string()
+    .trim()
+    .max(120, 'Interest selection is too long (maximum 120 characters).')
+    .optional()
+    .default(''),
+  message: z
+    .string()
+    .trim()
+    .max(4000, 'Message is too long (maximum 4,000 characters).')
+    .optional()
+    .default(''),
   website: z.string().max(2048).optional().default(''),
   turnstileToken: z.string().max(2048).optional().default(''),
 })
@@ -24,13 +48,24 @@ function csvEscape(value: string) {
 export async function POST(req: Request) {
   const origin = enforceSameOrigin(req)
   if (!origin.ok) {
-    return NextResponse.json({ ok: false, error: 'Forbidden origin.' }, { status: 403 })
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          'This form can only be sent from the live Tythys site. Open https://tythys.com , scroll to Get in touch, and submit there—not from a saved file or another domain.',
+      },
+      { status: 403 },
+    )
   }
 
   const rl = checkRateLimit(req, { key: 'contact', limit: 5, windowMs: 60_000 })
   if (!rl.ok) {
     return NextResponse.json(
-      { ok: false, error: 'Too many requests. Please try again shortly.' },
+      {
+        ok: false,
+        error:
+          'Too many messages were sent from this browser or network in a short time. Wait about a minute, then try again.',
+      },
       { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
     )
   }
@@ -46,11 +81,7 @@ export async function POST(req: Request) {
   const turnstile = await verifyTurnstile(data.turnstileToken, getClientIp(req))
   if (!turnstile.ok) {
     return NextResponse.json(
-      {
-        ok: false,
-        error:
-          'The form verification step did not complete. Please try again in a few seconds.',
-      },
+      { ok: false, error: turnstileFailureUserMessage(turnstile.errorCodes) },
       { status: 400 },
     )
   }

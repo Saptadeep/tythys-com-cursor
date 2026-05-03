@@ -6,7 +6,30 @@ import { Send, CheckCircle, AlertCircle, Clock, MapPin, Zap, ArrowUp } from 'luc
 import { Turnstile } from '@marsidev/react-turnstile'
 import { SERVICES }          from '@/config/services'
 import { cn }                from '@/lib/cn'
-import type { AppState }     from '@/types'
+
+type ContactApiJson = {
+  error?: string
+  detail?: Array<{ path?: string; message?: string }>
+}
+
+function messageFromContactApi(res: Response, json: ContactApiJson | null): string {
+  const parts = json?.detail?.map((d) => d.message).filter(Boolean) as string[] | undefined
+  if (parts && parts.length > 0) return parts.join(' ')
+
+  if (json?.error) return json.error
+
+  if (res.status === 403) {
+    return 'This form only works on the real site. Open tythys.com, use Get in touch there, and submit—not from another domain or a saved copy.'
+  }
+  if (res.status === 429) {
+    return 'Several messages were sent too quickly from this browser or network. Wait about a minute, then try again.'
+  }
+  if (res.status === 400) {
+    return 'The server rejected this submission. Refresh the page, complete every required field, and send again.'
+  }
+
+  return 'Something went wrong. Please try again.'
+}
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''
 
@@ -74,7 +97,9 @@ export function Contact() {
     setErrorMsg('')
 
     if (TURNSTILE_SITE_KEY && !turnstileToken) {
-      setErrorMsg('Please complete the security check before sending.')
+      setErrorMsg(
+        'Wait for the verification below to finish (it must show success), then tap Send again. If it never appears, refresh the page.',
+      )
       setState('error')
       return
     }
@@ -91,21 +116,28 @@ export function Contact() {
         }),
       })
 
-      const json = (await res.json().catch(() => null)) as {
-        error?: string
-        detail?: Array<{ message?: string }>
-      } | null
+      const raw = await res.text()
+      let json: ContactApiJson | null = null
+      if (raw) {
+        try {
+          json = JSON.parse(raw) as ContactApiJson
+        } catch {
+          json = null
+        }
+      }
+
       if (res.ok) {
         setConfirmEmail(form.email)
         setState('sent')
         return
       }
 
-      const fieldHint = json?.detail?.find((d) => d?.message)?.message
-      setErrorMsg(fieldHint || json?.error || 'Something went wrong. Please try again.')
+      setErrorMsg(messageFromContactApi(res, json))
       setState('error')
     } catch {
-      setErrorMsg('Network error. Please try again.')
+      setErrorMsg(
+        'Your browser could not reach the server. Check your connection, disable VPN or strict blockers for this site, then try again.',
+      )
       setState('error')
     }
   }

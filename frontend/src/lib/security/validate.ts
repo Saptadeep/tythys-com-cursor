@@ -12,7 +12,14 @@ export async function parseJson<T>(req: Request, schema: ZodType<T>): Promise<Pa
   } catch {
     return {
       ok: false,
-      response: NextResponse.json({ ok: false, error: 'Invalid JSON body.' }, { status: 400 }),
+      response: NextResponse.json(
+        {
+          ok: false,
+          error:
+            'The message could not be read by the server. Send again from this page, or refresh and refill the form.',
+        },
+        { status: 400 },
+      ),
     }
   }
 
@@ -23,7 +30,9 @@ export async function parseJson<T>(req: Request, schema: ZodType<T>): Promise<Pa
       response: NextResponse.json(
         {
           ok: false,
-          error: 'Please check your details and try again.',
+          error:
+            parsed.error.issues[0]?.message ??
+            'One or more fields need fixing—see the messages below.',
           detail: parsed.error.issues.map((i) => ({
             path: i.path.join('.'),
             message: i.message,

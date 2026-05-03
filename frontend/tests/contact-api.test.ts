@@ -46,7 +46,7 @@ describe('POST /api/contact hardening', () => {
     expect(res.status).toBe(400)
     const json = await res.json()
     expect(json.ok).toBe(false)
-    expect(String(json.error)).toMatch(/verification step did not complete/i)
+    expect(String(json.error)).toMatch(/verification did not finish|wait for the check/i)
   }, 15000)
 
   test('discards submissions that fill the honeypot field', async () => {
