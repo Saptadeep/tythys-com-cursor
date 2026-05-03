@@ -1,11 +1,11 @@
 # SESSION HANDOFF
 
-Last updated: 2026-05-01 (session close — **paused**: no further product extension queued; Week 6 human-validation items + optional SEO tidy remain; **GTM copy for GatewaySight** captured under `docs/sales/`)
+Last updated: **2026-05-02** (session close — auth/contact/gateway/OCI `/v1` alignment; see **§2.12**)
 Workspace root: `c:\tythys-com-cursor`
 Instruction mode: CMD instructions only
-Latest commit on `main`: verify with `git log -1 --oneline` after pull (doc-only updates may land after product deploys).
-Recent history: `git log -8 --oneline` (handoff + GatewaySight GTM brief landed 2026-05-01 evening).
-After pull/push: redeploy Vercel and smoke `https://tythys.com/icon.svg` + `https://tythys.com/apple-icon`.
+Latest commit on `main` after this handoff: run `git log -1 --oneline` (expect `20dc6bf` or newer).
+Recent product commits on `main`: `175c086`–`20dc6bf` (auth PKCE + contact errors + gateway errors + `meta.dataSource` + shared `backendV1Base`).
+After pull/push: redeploy Vercel; smoke `https://tythys.com/api/services/api-gateway-observability` → `meta.dataSource":"live"` when OCI + `BACKEND_MODE=real`; Google sign-in on apex; contact form error paths.
 
 > Read top-to-bottom. The first half captures the **current state** of the
 > project. The second half (under "Prior Context") preserves the earlier
@@ -241,6 +241,36 @@ Optional follow-ups when resuming marketing/SEO work:
 
 - Full prospect pitch + timed demo flow → `docs/sales/gatewaysight-prospect-brief.md`  
   (Use that file for demos; update it when the `/gateway-observability` UI or positioning shifts.)
+
+### 2.12  Session 2026-05-02 — auth, contact, gateway telemetry, OCI base URL (**shipped**)
+
+**Google OAuth / PKCE (prod):** `InvalidCheck` / `pkceCodeVerifier` often came from **host-scoped cookies** (`www` vs apex) or **overlapping** sign-in flows. Landed on `main`:
+- `frontend/next.config.js` — canonical redirect using `NEXT_PUBLIC_SITE_URL` (when canonical is apex, `www` → apex; invert if canonical is `www`).
+- `frontend/src/components/layout/NavUserMenu.tsx` — do not show **Sign in** while `useSession()` is `loading` (avoids starting OAuth before session is known).
+
+**Contact (“Get in touch”):** Replace broad errors with **field-accurate** and **Turnstile-specific** copy (no layout/CSS changes):
+- `frontend/src/app/api/contact/route.ts` — stricter Zod messages; `turnstileFailureUserMessage`; clearer 403 / 429 text.
+- `frontend/src/lib/security/verifyTurnstile.ts` — `turnstileFailureUserMessage(errorCodes)` mapped to Cloudflare-style codes.
+- `frontend/src/lib/security/validate.ts` — invalid JSON body copy; validation `error` uses first Zod issue; full `detail` still returned.
+- `frontend/src/components/sections/Contact.tsx` — merge all `detail` messages; parse body as text then JSON; status fallbacks; network hint.
+- `frontend/tests/contact-api.test.ts` — assertions updated for Turnstile copy.
+
+**Gateway observability page:** Safer fetches + operator-facing errors (same visual shell):
+- `frontend/src/app/gateway-observability/page.tsx` — `readApiJson`, `humanizeGatewaySummaryError`, `humanizeTelemetryNetworkError`.
+
+**Service summary API — mock vs live:** Debug without guessing mock numbers:
+- `frontend/src/lib/backend/registry.ts` — export `getBackendMode()`.
+- `frontend/src/app/api/services/[serviceId]/route.ts` — success payload includes `meta: { dataSource: "mock" | "live" }` (same `data` shape as before).
+
+**OCI 404 on `/api/services/...` when `BACKEND_MODE=real`:** FastAPI mounts routers under **`/v1`** (`backend/app/main.py`). `fetchRealSummary` previously called `{BASE}/services/.../summary` without ensuring `/v1`, while beam-calc already normalized the base — fixed by shared helper:
+- `frontend/src/lib/backend/baseUrl.ts` — **`backendV1Base(fallbackWhenUnset?: string)`** appends `/v1` when missing.
+- `frontend/src/lib/backend/modules.ts` — real summary uses `backendV1Base()`.
+- `frontend/src/lib/backend/proxy.ts` — `fetchBackend` uses `backendV1Base()` so ingest/incidents/etc. match host-only `BACKEND_BASE_URL`.
+- `frontend/src/app/api/beam-calc/solve/route.ts` — uses shared helper with localhost fallback for local dev.
+
+**Smoke:** [https://tythys.com/api/services/api-gateway-observability](https://tythys.com/api/services/api-gateway-observability) → `ok: true`, `meta.dataSource: live`, metrics vary (backend randomizes gateway summary). If `dataSource: mock`, Production env is not `BACKEND_MODE=real` or deploy not picked up.
+
+**Next session (suggested):** Week-6 validation from §3/§4 (OAuth, Turnstile, interviews); optional SEO items §2.10; copy pass per `prompt-session-start-end.md` (detect-only-first if preferred).
 
 ---
 

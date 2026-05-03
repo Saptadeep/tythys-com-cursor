@@ -1,6 +1,6 @@
 # Prompt on startup:
     Resume project at c:\tythys-com-cursor
-    Resume project at C:\tythys-com-cursor\bloodtable
+    Resume project at C:\projects\bloodtable
 
     Optionally for exhaustive project resumption instructions: refer C:\tythys-com-cursor\docs\SESSION_HANDOFF.md
     Read:
@@ -11,6 +11,8 @@
     Use CMD instructions only.
 
 # On-going Caution:
+Please modify with suitable texts. You may change the code behind, take extra care to not modify styling, design, typography, spacing, or visual theme. Your updates should not impact any UI UX styling in any way.
+
 Go through the texts and labels in all pages and find out what texts and copy needs to be change. Do not modify styling, design, typography, spacing, or visual theme.
 Let me know the changes you detect before implementing.
 
@@ -18,7 +20,7 @@ Let me know the changes you detect before implementing.
 I am git-pushing the current bundle with commit remark: XXXXXXXXXXXXXXXXXXXXXX
 
 # Prompt on end of session:
-Exiting Cursor. Update handoff so that we can resume smoothly. Keep all files maintained.
+Exiting Cursor (Folder: c:\tythys-com-cursor). Update handoff so that we can resume smoothly. Keep all files maintained and run a final `git push` for this session.
 
 # Layout design prompt
 Build/update this page to match the existing landing page visual system exactly.
