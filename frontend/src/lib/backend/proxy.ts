@@ -1,3 +1,5 @@
+import { backendV1Base } from './baseUrl'
+
 type FetchOptions = {
   method?: 'GET' | 'POST'
   body?: unknown
@@ -6,14 +8,6 @@ type FetchOptions = {
 
 export function isRealBackendMode() {
   return process.env.BACKEND_MODE === 'real'
-}
-
-function backendBaseUrl() {
-  const base = process.env.BACKEND_BASE_URL
-  if (!base) {
-    throw new Error('Missing BACKEND_BASE_URL.')
-  }
-  return base.replace(/\/$/, '')
 }
 
 export async function fetchBackend(path: string, options: FetchOptions = {}) {
@@ -27,7 +21,7 @@ export async function fetchBackend(path: string, options: FetchOptions = {}) {
     headers['x-api-key'] = process.env.INGEST_API_KEY
   }
 
-  const res = await fetch(`${backendBaseUrl()}${path}`, {
+  const res = await fetch(`${backendV1Base()}${path}`, {
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),

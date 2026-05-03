@@ -1,16 +1,13 @@
 import type { RequestContext, ServiceModule, ServiceSummary } from './types'
+import { backendV1Base } from './baseUrl'
 
 function toNumber(value: unknown, fallback: number) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
 
 async function fetchRealSummary(serviceId: string, ctx: RequestContext): Promise<ServiceSummary> {
-  const baseUrl = process.env.BACKEND_BASE_URL
-  if (!baseUrl) {
-    throw new Error('Missing BACKEND_BASE_URL for real backend mode.')
-  }
-
-  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/services/${serviceId}/summary`, {
+  const baseUrl = backendV1Base()
+  const res = await fetch(`${baseUrl}/services/${serviceId}/summary`, {
     headers: {
       ...(ctx.authToken ? { Authorization: `Bearer ${ctx.authToken}` } : {}),
       ...(ctx.userId ? { 'X-User-Id': ctx.userId } : {}),

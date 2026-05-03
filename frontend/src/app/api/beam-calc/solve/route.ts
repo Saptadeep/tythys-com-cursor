@@ -15,12 +15,11 @@
 //      by the rest of the /api/* routes.
 // ─────────────────────────────────────────────────────────────
 import { NextResponse } from 'next/server'
+import { backendV1Base } from '@/lib/backend/baseUrl'
 
 /** FastAPI routers are mounted under /v1 — same base as frontend/.env.example and @/lib/backend. */
-function backendV1Base(): string {
-  const raw = process.env.BACKEND_BASE_URL ?? 'http://localhost:8080'
-  const trimmed = raw.replace(/\/$/, '')
-  return trimmed.endsWith('/v1') ? trimmed : `${trimmed}/v1`
+function beamCalcBackendBase(): string {
+  return backendV1Base('http://localhost:8080')
 }
 
 export async function POST(req: Request) {
@@ -40,7 +39,7 @@ export async function POST(req: Request) {
 
   let res: Response
   try {
-    res = await fetch(`${backendV1Base()}/beam-calc/solve${qs}`, {
+    res = await fetch(`${beamCalcBackendBase()}/beam-calc/solve${qs}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
