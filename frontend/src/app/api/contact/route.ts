@@ -46,7 +46,11 @@ export async function POST(req: Request) {
   const turnstile = await verifyTurnstile(data.turnstileToken, getClientIp(req))
   if (!turnstile.ok) {
     return NextResponse.json(
-      { ok: false, error: 'Security check failed. Please retry.' },
+      {
+        ok: false,
+        error:
+          'The form verification step did not complete. Please try again in a few seconds.',
+      },
       { status: 400 },
     )
   }

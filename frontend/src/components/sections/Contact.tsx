@@ -91,14 +91,18 @@ export function Contact() {
         }),
       })
 
-      const json = (await res.json().catch(() => null)) as any
+      const json = (await res.json().catch(() => null)) as {
+        error?: string
+        detail?: Array<{ message?: string }>
+      } | null
       if (res.ok) {
         setConfirmEmail(form.email)
         setState('sent')
         return
       }
 
-      setErrorMsg(json?.error || 'Something went wrong. Please try again.')
+      const fieldHint = json?.detail?.find((d) => d?.message)?.message
+      setErrorMsg(fieldHint || json?.error || 'Something went wrong. Please try again.')
       setState('error')
     } catch {
       setErrorMsg('Network error. Please try again.')

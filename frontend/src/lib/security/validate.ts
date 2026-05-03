@@ -23,7 +23,7 @@ export async function parseJson<T>(req: Request, schema: ZodType<T>): Promise<Pa
       response: NextResponse.json(
         {
           ok: false,
-          error: 'Validation failed.',
+          error: 'Please check your details and try again.',
           detail: parsed.error.issues.map((i) => ({
             path: i.path.join('.'),
             message: i.message,
