@@ -63,6 +63,74 @@ type TimelineEvent = { ts: string; kind: string; message: string }
 
 type ApiResponse<T> = { ok: boolean; data?: T; error?: string }
 
+async function readApiJson<T>(res: Response): Promise<ApiResponse<T>> {
+  const text = await res.text()
+  if (!text.trim()) {
+    return {
+      ok: false,
+      error: `Telemetry API returned an empty body (HTTP ${res.status}).`,
+    }
+  }
+  try {
+    return JSON.parse(text) as ApiResponse<T>
+  } catch {
+    return {
+      ok: false,
+      error: `Telemetry API returned non-JSON (HTTP ${res.status}). A proxy or the origin may have served an HTML error page instead of JSON.`,
+    }
+  }
+}
+
+/** Maps server/thrown messages to concrete causes (misconfig, auth, route, network). */
+function humanizeGatewaySummaryError(raw: string): string {
+  const m = raw.trim()
+
+  if (/^Unsupported service:/i.test(m)) {
+    const id = m.replace(/^Unsupported service:\s*/i, '').trim()
+    return `This dashboard asks for an unregistered service id (${id || '…'}). Register it in the backend registry or correct the service id in the API route.`
+  }
+
+  if (/Missing BACKEND_BASE_URL/i.test(m)) {
+    return 'BACKEND_BASE_URL is not set while live telemetry is enabled. Add it in the host environment (e.g. Vercel) or set BACKEND_MODE to mock to use the built-in demo summary.'
+  }
+
+  const realFail = m.match(/Real backend request failed for .+:\s*(\d{3})\b/)
+  if (realFail) {
+    const code = realFail[1]
+    if (code === '401' || code === '403') {
+      return `The telemetry backend refused the request (HTTP ${code}). It likely requires credentials (Bearer token, API key, or IP allowlist) that this server-side call does not include yet.`
+    }
+    if (code === '404') {
+      return 'The backend has no GET /services/api-gateway-observability/summary (404). Implement that route or align BACKEND_BASE_URL and the path with your API.'
+    }
+    if (code === '502' || code === '503' || code === '504') {
+      return `The telemetry backend was unreachable or timed out (HTTP ${code}). Confirm the process is up and that BACKEND_BASE_URL is reachable from your hosting region.`
+    }
+    return `The telemetry backend responded with HTTP ${code} for the gateway summary. Use that status when checking backend logs for /services/api-gateway-observability/summary.`
+  }
+
+  const proxyFail = m.match(/Backend request failed \((\d{3})\) for (\S+)/)
+  if (proxyFail) {
+    const [, code, path] = proxyFail
+    return `Telemetry request ${path} failed with HTTP ${code}. Verify BACKEND_BASE_URL and that this path exists on the backend.`
+  }
+
+  return m
+}
+
+function humanizeTelemetryNetworkError(message: string): string {
+  const lower = message.toLowerCase()
+  if (
+    lower.includes('failed to fetch') ||
+    lower.includes('networkerror') ||
+    lower.includes('load failed') ||
+    lower === 'network request failed'
+  ) {
+    return 'The browser could not reach /api (network blocked or offline). Check connectivity, VPN, corporate proxy, or extensions that block API calls.'
+  }
+  return humanizeGatewaySummaryError(message)
+}
+
 /* ─── Severity / health → token tints (mirrors landing palette) ─── */
 function healthTint(health: string) {
   if (health === 'healthy') return 'border-ok/40 bg-ok/[0.08] text-ok'
@@ -109,31 +177,24 @@ export default function GatewayObservabilityPage() {
       setError(null)
       try {
         const results = await Promise.all([
-          fetch('/api/services/api-gateway-observability').then(
-            (r) => r.json() as Promise<ApiResponse<SummaryData>>,
-          ),
-          fetch('/api/ingest/latest').then(
-            (r) => r.json() as Promise<ApiResponse<IngestData>>,
-          ),
-          fetch('/api/incidents/current').then(
-            (r) => r.json() as Promise<ApiResponse<Incident[]>>,
-          ),
-          fetch('/api/actions/prioritized').then(
-            (r) => r.json() as Promise<ApiResponse<Action[]>>,
-          ),
-          fetch('/api/endpoints/health').then(
-            (r) => r.json() as Promise<ApiResponse<Endpoint[]>>,
-          ),
-          fetch('/api/timeline').then(
-            (r) => r.json() as Promise<ApiResponse<TimelineEvent[]>>,
-          ),
+          fetch('/api/services/api-gateway-observability').then(readApiJson<SummaryData>),
+          fetch('/api/ingest/latest').then(readApiJson<IngestData>),
+          fetch('/api/incidents/current').then(readApiJson<Incident[]>),
+          fetch('/api/actions/prioritized').then(readApiJson<Action[]>),
+          fetch('/api/endpoints/health').then(readApiJson<Endpoint[]>),
+          fetch('/api/timeline').then(readApiJson<TimelineEvent[]>),
         ])
 
         if (!mounted) return
 
         const [s, i, inc, act, ep, tl] = results
         if (!s.ok || !s.data) {
-          setError(s.error ?? 'Gateway summary is unavailable.')
+          setError(
+            humanizeGatewaySummaryError(
+              s.error ??
+                'Gateway summary API returned no data. Inspect GET /api/services/api-gateway-observability and BACKEND_MODE / BACKEND_BASE_URL.',
+            ),
+          )
         } else {
           setSummary(s.data)
         }
@@ -143,8 +204,11 @@ export default function GatewayObservabilityPage() {
         if (ep.ok && ep.data) setEndpoints(ep.data)
         if (tl.ok && tl.data) setTimeline(tl.data)
         setLastUpdate(new Date())
-      } catch {
-        if (mounted) setError('Failed to reach gateway telemetry endpoints.')
+      } catch (err) {
+        if (mounted) {
+          const msg = err instanceof Error ? err.message : String(err)
+          setError(humanizeTelemetryNetworkError(msg))
+        }
       } finally {
         if (mounted) setLoading(false)
       }
