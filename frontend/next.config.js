@@ -56,6 +56,35 @@ const nextConfig = {
   images: {
     domains: [],
   },
+  // OAuth PKCE/state cookies are host-scoped. Serving both www and apex breaks sign-in when the
+  // browser returns to a different host than the one that started the flow.
+  async redirects() {
+    const canonical = new URL(SITE_URL)
+    const host = canonical.hostname
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return []
+    }
+    const apex = host.replace(/^www\./, '')
+    const wwwHost = `www.${apex}`
+    if (host.startsWith('www.')) {
+      return [
+        {
+          source: '/:path*',
+          has: [{ type: 'host', value: apex }],
+          destination: `${canonical.protocol}//${host}/:path*`,
+          permanent: true,
+        },
+      ]
+    }
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: wwwHost }],
+        destination: `${canonical.protocol}//${apex}/:path*`,
+        permanent: true,
+      },
+    ]
+  },
   headers: async () => [
     {
       source: '/:path*',
