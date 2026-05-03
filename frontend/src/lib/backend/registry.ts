@@ -1,7 +1,7 @@
 import { serviceModules } from './modules'
 import type { BackendMode, RequestContext, ServiceSummary } from './types'
 
-function getBackendMode(): BackendMode {
+export function getBackendMode(): BackendMode {
   return process.env.BACKEND_MODE === 'real' ? 'real' : 'mock'
 }
 

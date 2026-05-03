@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServiceSummary } from '@/lib/backend/registry'
+import { getBackendMode, getServiceSummary } from '@/lib/backend/registry'
 
 type Params = { params: Promise<{ serviceId: string }> }
 
@@ -11,7 +11,16 @@ export async function GET(req: Request, { params }: Params) {
     const authToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
 
     const summary = await getServiceSummary(serviceId, { userId, authToken })
-    return NextResponse.json({ ok: true, data: summary }, { status: 200 })
+    return NextResponse.json(
+      {
+        ok: true,
+        data: summary,
+        meta: {
+          dataSource: getBackendMode() === 'real' ? 'live' : 'mock',
+        },
+      },
+      { status: 200 },
+    )
   } catch (err) {
     return NextResponse.json(
       {
