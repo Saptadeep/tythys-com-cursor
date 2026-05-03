@@ -8,6 +8,15 @@ export function NavUserMenu({ variant = 'desktop' }: { variant?: 'desktop' | 'mo
   const isAuthed = status === 'authenticated' && session?.user
   const isAdmin = isAuthed && (session?.user as { role?: string })?.role === 'admin'
 
+  // While loading, do not offer Google sign-in: a fast click can start OAuth while a session
+  // cookie already exists, or overlap PKCE cookies if another tab started sign-in.
+  if (status === 'loading') {
+    if (variant === 'mobile') {
+      return <div className="h-[52px]" aria-hidden />
+    }
+    return <span className="inline-block h-5 w-14" aria-hidden />
+  }
+
   if (!isAuthed) {
     if (variant === 'mobile') {
       return (
