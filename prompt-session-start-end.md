@@ -20,7 +20,11 @@ Let me know the changes you detect before implementing.
 I am git-pushing the current bundle with commit remark: XXXXXXXXXXXXXXXXXXXXXX
 
 # Prompt on end of session:
-Exiting Cursor (Folder: c:\tythys-com-cursor). Update handoff so that we can resume smoothly. Keep all files maintained and run a final `git push` for this session.
+I will exit current sessions of Cursor. Next session resume brief: Write/update c:\projects\linear-algebra-web\HANDOFF.md with: project purpose, architecture (UI vs Python API vs student files), lesson roadmap, commands (serve, uvicorn), unresolved todos, and anything needed to continue Lesson 2+. Ensure repo is consistent with current intent; run git status from c:\projects — if there are local commits not on origin/main (adjust branch), run git push. Don’t push if nothing is committed or remote is unclear.
+
+I will exit current sessions of Cursor. Update handoff with all details and chats so that we can resume smoothly. Keep all files maintained and run a final `git push` for this session, if needed.
+
+I will exit Cursor. Update handoff with all details and chats so that we can resume smoothly. Keep all files maintained and run a final `git push` for this session, if needed.
 
 # Layout design prompt
 Build/update this page to match the existing landing page visual system exactly.
