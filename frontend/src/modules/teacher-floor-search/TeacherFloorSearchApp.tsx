@@ -26,7 +26,7 @@ function outcomeMeta(
 }
 
 function seatsToPlainBlock(seats: TeacherSeat[]): string {
-  return seats.map(formatSeatPlainText).join('\n\n—\n\n')
+  return seats.map(formatSeatPlainText).join('\n—\n')
 }
 
 export function TeacherFloorSearchApp() {
