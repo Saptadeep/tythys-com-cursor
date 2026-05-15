@@ -16,6 +16,12 @@ function outcomeMeta(
   if (outcome.kind === 'need_more') {
     return 'Type at least 3 letters (case-insensitive).'
   }
+  if (outcome.kind === 'ambiguous') {
+    return 'Several teachers share those opening letters — keep typing to narrow to one name.'
+  }
+  if (outcome.kind === 'solo') {
+    return 'Matched one teacher (5+ characters typed; first five letters of the name align).'
+  }
   if (outcome.kind === 'none') {
     return `No floor or teacher match for “${q.slice(0, 3)}…”.`
   }
@@ -34,18 +40,21 @@ export function TeacherFloorSearchApp() {
   const outcome = useMemo(() => searchSeats(query), [query])
   const meta = useMemo(() => outcomeMeta(outcome, query), [outcome, query])
   const body = useMemo(() => {
-    if (outcome.kind !== 'by_teacher' && outcome.kind !== 'by_floor') {
-      return ''
+    if (outcome.kind === 'solo') return formatSeatPlainText(outcome.seat)
+    if (outcome.kind === 'by_teacher' || outcome.kind === 'by_floor') {
+      return seatsToPlainBlock(outcome.seats)
     }
-    return seatsToPlainBlock(outcome.seats)
+    return ''
   }, [outcome])
 
   return (
     <div className={styles.wrap}>
       <h1 className={styles.title}>Teacher · Room · Floor</h1>
       <p className={styles.hint}>
-        Enter the first 3 letters of a teacher&apos;s name or a floor (e.g.{' '}
+        3–4 characters: first 3 letters of a teacher or floor (e.g.{' '}
         <strong>gro</strong> → Ground, <strong>rit</strong> → Ritu&apos;s floor).
+        With <strong>5+</strong> characters, only one teacher is shown when the first five letters
+        of their name match what you typed (after titles like Ms./Mr.).
       </p>
 
       <label className={styles.label} htmlFor="teacher-floor-q">
@@ -59,7 +68,7 @@ export function TeacherFloorSearchApp() {
         autoCorrect="off"
         spellCheck={false}
         enterKeyHint="search"
-        placeholder="At least 3 letters…"
+        placeholder="3+ letters, or 5+ for one teacher…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
