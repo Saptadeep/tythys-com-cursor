@@ -9,22 +9,22 @@ export type SeatingRow = {
 
 export const SEATING_ROWS: SeatingRow[] = [
   {
-    teachers: ['Ms. Ritu Bammi', 'Mr. Zothan', 'Ms. Prabha Saraswat'],
+    teachers: ['Ms. Ritu Bammi'],
     room: 'Room 1, Block A',
     floor: 'Ground Floor',
   },
   {
-    teachers: ['Ms. Neha Sejwal-LS', 'Ms. Meenakshi Chauhan', 'Ms. Mohita Sharma'],
+    teachers: ['Ms. Neha Sejwal-LS'],
     room: 'Room 2, Block A',
     floor: 'Ground Floor',
   },
   {
-    teachers: ['Ms. Ananya Juneja', 'Ms. Khyati Sharma', 'Mr. Deepesh Sharma'],
+    teachers: ['Mr. Deepesh Sharma'],
     room: 'Room 3, Block A',
     floor: 'Ground Floor',
   },
   {
-    teachers: ['Ms. Indu Chauhan', 'Ms. Dhriti Manktalia'],
+    teachers: ['Ms. Indu Chauhan'],
     room: 'VA, Block A',
     floor: 'First Floor',
   },
@@ -34,17 +34,17 @@ export const SEATING_ROWS: SeatingRow[] = [
     floor: 'First Floor',
   },
   {
-    teachers: ['Ms. Mrinmayee Dey', 'Ms. Shalini Tomar', 'Ms. Shresthama Singh'],
+    teachers: ['Ms. Mrinmayee Dey-ART', 'Ms. Shalini Tomar'],
     room: 'VC, Block A',
     floor: 'First Floor',
   },
   {
-    teachers: ['Ms. Akanksha Rana', 'Ms. Ayesha Khan', 'Ms. Saumya Singh'],
+    teachers: ['Ms. Akanksha Rana-DANCE', 'Ms. Ayesha Khan - DIARY', 'Ms. Saumya Singh-MATH'],
     room: 'Next to Auditorium',
     floor: 'First Floor',
   },
   {
-    teachers: ['Ms. Jaspreet Kaur', 'Ms. Ritika Verma'],
+    teachers: ['Ms. Ritika Verma-BIO'],
     room: 'Next to Auditorium',
     floor: 'First Floor',
   },
@@ -53,39 +53,29 @@ export const SEATING_ROWS: SeatingRow[] = [
       'Mr. Chetan Kumar',
       'Mr. Sunil Dubey',
       'Ms. Rimpamla Vashi',
-      'Mr. Sandeep Rai',
+      'Mr. Sandeep Rai-DANCE',
     ],
     room: 'Conference room',
     floor: 'First Floor',
   },
   {
-    teachers: ['Dr. Unnati Gulaty', 'Ms. Gayatri Khurana', 'Ms. Radhika Pandey-GEO'],
+    teachers: ['Dr. Unnati Gulaty', 'Ms. Radhika Pandey-GEO'],
     room: 'Yoga room',
     floor: 'Basement/First Floor',
   },
   {
-    teachers: ['Ms. Monika Handa', 'Ms. Ravina Ameta', 'Ms. Avneet Kaur Marwah'],
+    teachers: ['Ms. Monika Handa', 'Ms. Avneet Kaur Marwah'],
     room: 'Room 1, Block C',
     floor: 'Ground Floor',
   },
   {
-    teachers: ['Ms. Sakshi Chopra', 'Ms. Swati Jain'],
-    room: 'Room 2, Block C',
-    floor: 'Ground Floor',
-  },
-  {
-    teachers: ['Ms. Priyanka Sen', 'Ms. Parul Kapila', 'Ms. Chetna Joshi'],
+    teachers: ['Ms. Parul Kapila'],
     room: 'IX A, Block C',
     floor: 'First Floor',
   },
   {
-    teachers: ['Mr. Manish Dwivedi', 'Dr. Roli Bhatnagar', 'Ms. Saumya Joshi-ELIT'],
+    teachers: ['Ms. Saumya Joshi-ELIT'],
     room: 'IX B, Block C',
-    floor: 'First Floor',
-  },
-  {
-    teachers: ['Dr. B.K. Tejeswi', 'Dr. Gayatri Tripathy', 'Ms. Seema Srivastava'],
-    room: 'XA, Block C',
     floor: 'First Floor',
   },
   {
@@ -94,7 +84,7 @@ export const SEATING_ROWS: SeatingRow[] = [
     floor: 'First Floor',
   },
   {
-    teachers: ['Mr. Anup Singh Chauhan-PHY', 'Ms. Shweta Rawat'],
+    teachers: ['Mr. Anup Singh Chauhan-PHY'],
     room: 'Tutorial Room',
     floor: 'First Floor',
   },
